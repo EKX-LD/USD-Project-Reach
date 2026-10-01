@@ -24720,24 +24720,13 @@ function _smEmailResize(cv, maxW) {
   return c2;
 }
 
-function _smBuildHeaderCanvas(dateStr, coverageStr) {
-  var W=560, H=66, S=2, R=16;
+function _smBuildHeaderCanvas(dateStr, coverageStr, canvasW) {
+  var W = canvasW || 600, H=66, S=2;
   var cv=document.createElement('canvas');
   cv.width=W*S; cv.height=H*S;
   var ctx=cv.getContext('2d');
   ctx.scale(S,S);
-  /* Grey fill so rounded-corner cutouts blend with email background */
-  ctx.fillStyle='#EAECEE';
-  ctx.fillRect(0,0,W,H);
-  /* Clip to rounded-top rectangle */
-  ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(R,0); ctx.lineTo(W-R,0);
-  ctx.arcTo(W,0,W,R,R);
-  ctx.lineTo(W,H); ctx.lineTo(0,H); ctx.lineTo(0,R);
-  ctx.arcTo(0,0,R,0,R);
-  ctx.closePath(); ctx.clip();
-  /* Dark-blue body */
+  /* Solid dark-blue fill — no grey corners; CSS border-radius on the container handles rounding */
   ctx.fillStyle='#003D8F';
   ctx.fillRect(0,0,W,H);
   /* Left — title */
@@ -24750,7 +24739,7 @@ function _smBuildHeaderCanvas(dateStr, coverageStr) {
   ctx.fillStyle='#A5C3F5';
   ctx.fillText('Monthly Newsletter  \u00b7  '+dateStr,22,48);
   /* Right — badge */
-  var bW=134,bH=38,bX=W-22-bW,bY=(H-bH)/2,bR=6;
+  var bW=142,bH=38,bX=W-22-bW,bY=(H-bH)/2,bR=6;
   ctx.fillStyle='rgba(255,255,255,0.12)';
   ctx.strokeStyle='rgba(255,255,255,0.28)';
   ctx.lineWidth=1;
@@ -24772,7 +24761,6 @@ function _smBuildHeaderCanvas(dateStr, coverageStr) {
   ctx.font='700 12px Arial,sans-serif';
   ctx.fillStyle='#ffffff';
   ctx.fillText(coverageStr||'\u2013',bX+bW/2,bY+30);
-  ctx.restore();
   return cv;
 }
 
@@ -24934,7 +24922,7 @@ async function smCaptureEmailImages() {
       return (_MS_H[_MONS_H.indexOf(_fH2.em)]||_fH2.em)+' '+_fH2.ey
         +' – '+(_MS_H[_MONS_H.indexOf(_lH2.em)]||_lH2.em)+' '+_lH2.ey;
     })();
-    var _hdrCv = _smBuildHeaderCanvas(_dateH, _covStrH);
+    var _hdrCv = _smBuildHeaderCanvas(_dateH, _covStrH, 600);
     /* FIX-B: html2canvas smEmailHeaderCapture → Canvas-2D fallback */
     await (async function _smSvgCaptureFallback() {
         /* helper: serialise one SVG element → hi-DPI PNG data-URL
@@ -25302,8 +25290,10 @@ function smGetEmailHtml() {
       ? '<span style="background:#F1F5F9;color:#475569;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;border:1px solid #CBD5E1;white-space:nowrap;">&#10003; Concluded</span>'
       : '<span style="background:#F0FDF4;color:'+(daysLeft<=10?C.red:(daysLeft<=30?C.amber:C.green))+';font-size:'+(compact?'9px':'10px')+';font-weight:700;padding:2px '+(compact?'5px':'7px')+';border-radius:20px;border:1px solid #D1FAE5;white-space:nowrap;">'+daysLeft+' days remaining</span>';
     function miniCell(val, lbl, clr, iconSvg) {
+      var _icSz = compact ? 12 : 16;
+      /* iconSvg arg kept for compat but ignored — use canvas PNG for Outlook */
       return '<td style="text-align:center;padding:'+(compact?'3px 2px':'5px 4px')+';background:#F8FAFF;border-radius:6px;border:1px solid #E4E9F2;">'
-        +(iconSvg ? '<div style="display:flex;justify-content:center;margin-bottom:'+(compact?'1px':'3px')+';">'+iconSvg+'</div>' : '')
+        +'<div style="margin:0 auto '+(compact?'2px':'3px')+';width:'+_icSz+'px;">'+_emailIconImg(lbl.toLowerCase().indexOf('active')>=0?'people':lbl.toLowerCase().indexOf('kpi')>=0?'target':'bars',clr,_icSz)+'</div>'
         +'<div style="font-size:'+(compact?'13px':'17px')+';font-weight:800;color:'+clr+';">'+fmtVal(val)+'</div>'
         +'<div style="font-size:'+(compact?'9px':'10px')+';color:'+C.txSub+';margin-top:1px;">'+lbl+'</div>'
         +'</td>';
@@ -25321,24 +25311,11 @@ function smGetEmailHtml() {
       +'KPI closes: '+(r.kpiMonth||'\u2014')+' '+r.kpiYear
       +'</div>'
       +'<table width="100%" cellpadding="2" cellspacing="'+(compact?'2':'3')+'" style="table-layout:fixed;margin-bottom:'+(compact?'4px':'6px')+';"><tr>'
-      +miniCell(r.totalActiveInPeriod,'Active Clients',C.blue,
-        '<svg width="'+(compact?'12':'16')+'" height="'+(compact?'12':'16')+'" viewBox="0 0 24 24" fill="none">'
-        +'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="'+C.blue+'" stroke-width="2" stroke-linecap="round"/>'
-        +'<circle cx="9" cy="7" r="4" stroke="'+C.blue+'" stroke-width="2"/>'
-        +'<path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="'+C.blue+'" stroke-width="2" stroke-linecap="round"/>'
-        +'</svg>')+'<td width="'+(compact?'2':'4')+'"></td>'
-      +miniCell(r.kpiYes,'REACH KPI Added',C.purple,
-        '<svg width="'+(compact?'12':'16')+'" height="'+(compact?'12':'16')+'" viewBox="0 0 24 24" fill="none">'
-        +'<circle cx="12" cy="12" r="10" stroke="'+C.purple+'" stroke-width="2"/>'
-        +'<circle cx="12" cy="12" r="6" stroke="'+C.purple+'" stroke-width="2"/>'
-        +'<circle cx="12" cy="12" r="2" fill="'+C.purple+'"/>'
-        +'</svg>')+'<td width="'+(compact?'2':'4')+'"></td>'
-      +miniCell(r.withUtil,'Util. Growth',C.green,
-        '<svg width="'+(compact?'12':'16')+'" height="'+(compact?'12':'16')+'" viewBox="0 0 24 24" fill="none">'
-        +'<rect x="2" y="14" width="4" height="8" rx="1" fill="'+C.green+'" opacity=".7"/>'
-        +'<rect x="9" y="9" width="4" height="13" rx="1" fill="'+C.green+'" opacity=".85"/>'
-        +'<rect x="16" y="4" width="4" height="18" rx="1" fill="'+C.green+'"/>'
-        +'</svg>')
+      +miniCell(r.totalActiveInPeriod,'Active Clients',C.blue,null)
+      +'<td width="'+(compact?'2':'4')+'"></td>'
+      +miniCell(r.kpiYes,'REACH KPI Added',C.purple,null)
+      +'<td width="'+(compact?'2':'4')+'"></td>'
+      +miniCell(r.withUtil,'Util. Growth',C.green,null)
       +'</tr></table>'
       +'<div style="display:flex;align-items:baseline;gap:'+(compact?'3px':'5px')+';margin-bottom:2px;">'
       +'<div style="font-size:10.5px;color:'+C.txSub+';font-weight:600;text-transform:uppercase;letter-spacing:.04em;">Success Rate</div>'
@@ -25352,9 +25329,103 @@ function smGetEmailHtml() {
       +'</div>';
   }
 
+  /* ── Outlook-safe icon helper: Canvas 2D → PNG data-URL ── */
+  function _emailIconPng(type, color, sz) {
+    try {
+      var cv = document.createElement('canvas');
+      var S = 2; cv.width = sz * S; cv.height = sz * S;
+      var ctx = cv.getContext('2d');
+      ctx.scale(S, S);
+      ctx.strokeStyle = color; ctx.fillStyle = color;
+      ctx.lineWidth = Math.max(1.4, sz * 0.083); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      if (type === 'people') {
+        /* head */
+        ctx.beginPath(); ctx.arc(sz*0.375, sz*0.291, sz*0.175, 0, Math.PI*2); ctx.stroke();
+        /* body arc */
+        ctx.beginPath();
+        ctx.moveTo(sz*0.708, sz*0.875); ctx.lineTo(sz*0.708, sz*0.792);
+        ctx.bezierCurveTo(sz*0.708,sz*0.625, sz*0.042,sz*0.625, sz*0.042,sz*0.792);
+        ctx.lineTo(sz*0.042, sz*0.875); ctx.stroke();
+        /* second person head */
+        ctx.globalAlpha = 0.6;
+        ctx.beginPath(); ctx.arc(sz*0.708, sz*0.275, sz*0.14, 0, Math.PI*2); ctx.stroke();
+        /* second person body hint */
+        ctx.beginPath();
+        ctx.moveTo(sz*0.958, sz*0.875); ctx.lineTo(sz*0.958, sz*0.808);
+        ctx.bezierCurveTo(sz*0.958,sz*0.66, sz*0.5,sz*0.66, sz*0.5,sz*0.792); ctx.stroke();
+        ctx.globalAlpha = 1;
+      } else if (type === 'target') {
+        ctx.beginPath(); ctx.arc(sz/2, sz/2, sz*0.417, 0, Math.PI*2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(sz/2, sz/2, sz*0.25, 0, Math.PI*2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(sz/2, sz/2, sz*0.083, 0, Math.PI*2); ctx.fill();
+      } else if (type === 'bars') {
+        ctx.globalAlpha = 0.7;
+        ctx.beginPath(); ctx.roundRect ? ctx.roundRect(sz*0.083,sz*0.583,sz*0.167,sz*0.334,sz*0.042) : ctx.rect(sz*0.083,sz*0.583,sz*0.167,sz*0.334); ctx.fill();
+        ctx.globalAlpha = 0.85;
+        ctx.beginPath(); ctx.roundRect ? ctx.roundRect(sz*0.375,sz*0.375,sz*0.167,sz*0.542,sz*0.042) : ctx.rect(sz*0.375,sz*0.375,sz*0.167,sz*0.542); ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.beginPath(); ctx.roundRect ? ctx.roundRect(sz*0.667,sz*0.167,sz*0.167,sz*0.75,sz*0.042) : ctx.rect(sz*0.667,sz*0.167,sz*0.167,sz*0.75); ctx.fill();
+      } else if (type === 'star') {
+        /* circle + % text for success rate */
+        ctx.beginPath(); ctx.arc(sz/2, sz/2, sz*0.417, 0, Math.PI*2); ctx.stroke();
+        ctx.font = 'bold ' + Math.round(sz * 0.38) + 'px Arial,sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('%', sz/2, sz/2 + sz*0.04);
+      } else if (type === 'trend-up') {
+        /* upward trend arrow */
+        ctx.beginPath();
+        ctx.moveTo(sz*0.042,sz*0.75); ctx.lineTo(sz*0.354,sz*0.458); ctx.lineTo(sz*0.563,sz*0.646);
+        ctx.lineTo(sz*0.958,sz*0.25); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(sz*0.708,sz*0.25); ctx.lineTo(sz*0.958,sz*0.25); ctx.lineTo(sz*0.958,sz*0.5); ctx.stroke();
+      } else if (type === 'trend-dn') {
+        /* downward trend arrow */
+        ctx.beginPath();
+        ctx.moveTo(sz*0.042,sz*0.25); ctx.lineTo(sz*0.354,sz*0.542); ctx.lineTo(sz*0.563,sz*0.354);
+        ctx.lineTo(sz*0.958,sz*0.75); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(sz*0.708,sz*0.75); ctx.lineTo(sz*0.958,sz*0.75); ctx.lineTo(sz*0.958,sz*0.5); ctx.stroke();
+      } else if (type === 'check') {
+        /* checkmark in circle */
+        ctx.beginPath(); ctx.arc(sz/2, sz/2, sz*0.417, 0, Math.PI*2); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(sz*0.375,sz*0.5); ctx.lineTo(sz*0.458,sz*0.583); ctx.lineTo(sz*0.625,sz*0.417); ctx.stroke();
+      } else if (type === 'alert') {
+        /* triangle alert */
+        ctx.beginPath();
+        ctx.moveTo(sz/2,sz*0.125); ctx.lineTo(sz*0.917,sz*0.875); ctx.lineTo(sz*0.083,sz*0.875); ctx.closePath(); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(sz/2,sz*0.375); ctx.lineTo(sz/2,sz*0.583); ctx.stroke();
+        ctx.beginPath(); ctx.arc(sz/2, sz*0.708, sz*0.042, 0, Math.PI*2); ctx.fill();
+      } else if (type === 'partial') {
+        /* circle with minus */
+        ctx.beginPath(); ctx.arc(sz/2, sz/2, sz*0.417, 0, Math.PI*2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(sz*0.333,sz/2); ctx.lineTo(sz*0.667,sz/2); ctx.stroke();
+      } else if (type === 'bu') {
+        /* briefcase */
+        ctx.strokeRect(sz*0.083, sz*0.292, sz*0.833, sz*0.583);
+        ctx.beginPath();
+        ctx.moveTo(sz*0.667,sz*0.292); ctx.lineTo(sz*0.667,sz*0.208);
+        ctx.arcTo(sz*0.667,sz*0.083, sz*0.583,sz*0.083, sz*0.083);
+        ctx.lineTo(sz*0.417,sz*0.083);
+        ctx.arcTo(sz*0.333,sz*0.083, sz*0.333,sz*0.208, sz*0.083);
+        ctx.lineTo(sz*0.333,sz*0.292); ctx.stroke();
+      } else {
+        /* info: circle + dot + line */
+        ctx.beginPath(); ctx.arc(sz/2, sz/2, sz*0.417, 0, Math.PI*2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(sz/2, sz*0.333, sz*0.042, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(sz/2,sz*0.458); ctx.lineTo(sz/2,sz*0.667); ctx.stroke();
+      }
+      return cv.toDataURL('image/png');
+    } catch(e) { return ''; }
+  }
+  function _emailIconImg(type, color, sz) {
+    var d = _emailIconPng(type, color, sz);
+    return d ? '<img src="'+d+'" width="'+sz+'" height="'+sz+'" style="display:block;" alt="">' : '';
+  }
+
   /* ── Section label ── */
   function sLabel(text, clr) {
-    return '<div style="font-size:12px;font-weight:800;color:'+(clr||C.txBold)+';text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px;padding-bottom:4px;border-bottom:1px solid '+(clr||C.border)+';opacity:.9;">'+text+'</div>';
+    return '<div style="font-size:11px;font-weight:800;color:'+(clr||C.txBold)+';text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid '+(clr||C.border)+';opacity:.9;">'+text+'</div>';
   }
 
   /* ── Build email ── */
@@ -25363,19 +25434,22 @@ function smGetEmailHtml() {
     +'img{display:block;max-width:100%;border:none;}</style></head><body>';
 
   /* Outer wrapper */
-  H += '<table width="100%" cellpadding="0" cellspacing="0" style="background:#EAECEE;padding:12px 0;">'
-    +'<tr><td align="center">';
-  H += '<table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.10);">';
+  H += '<table width="100%" cellpadding="0" cellspacing="0" style="background:#EAECEE;padding:10px 0;">'
+    +'<tr><td align="center" style="padding:0 8px;">';
+  H += '<table cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.10);">';
 
-  /* ── Header (image if captured, HTML fallback) ── */
-  if (_smEmailCaptures && _smEmailCaptures.header) {
-    H += '<tr><td style="padding:0;line-height:0;font-size:0;background:#EAECEE;border-radius:12px 12px 0 0;overflow:hidden;">'
-      +'<img src="'+_smEmailCaptures.header+'" width="560"'
-      +' style="width:100%;max-width:560px;display:block;border:0;border-radius:12px 12px 0 0;"'
+  /* ── Header — always Canvas-PNG image at container width (600px); never stretch ── */
+  var _hdrDataUrl = (typeof _smBuildHeaderCanvas === 'function')
+    ? _smBuildHeaderCanvas(dateStr, coverageStr, 600).toDataURL('image/png')
+    : ((_smEmailCaptures && _smEmailCaptures.header) || null);
+  if (_hdrDataUrl) {
+    H += '<tr><td style="padding:0;line-height:0;font-size:0;background:#003D8F;">'
+      +'<img src="'+_hdrDataUrl+'" width="600" height="66"'
+      +' style="display:block;width:100%;height:auto;border:0;"'
       +' alt="USD Project Reach Newsletter">'
       +'</td></tr>';
   } else {
-    H += '<tr><td style="background:#003D8F;padding:14px 22px;">'
+    H += '<tr><td style="background:#003D8F;padding:14px 16px;">'
       +'<table width="100%" cellpadding="0" cellspacing="0"><tr>'
       +'<td style="vertical-align:middle;">'
       +'<div style="font-size:18px;font-weight:800;color:#fff;font-family:Arial,Helvetica,sans-serif;">USD Project Reach</div>'
@@ -25391,30 +25465,26 @@ function smGetEmailHtml() {
   }
 
   /* ── White body ── */
-  H += '<tr><td style="padding:16px 20px 0;">';
+  H += '<tr><td style="padding:14px 14px 0;">';
 
   /* ══ 1. KPI Banner image (image 20) ══ */
   H += '<div style="margin-bottom:14px;">';
-  H += '<div style="font-size:12px;font-weight:800;color:'+C.blue+';text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px;padding-bottom:4px;border-bottom:1px solid '+C.border+';display:flex;align-items:center;gap:5px;">'+'<svg width="13" height="13" viewBox="0 0 24 24" fill="none">'+'<rect x="3" y="3" width="7" height="7" rx="1" fill="'+C.blue+'" />'+'<rect x="14" y="3" width="7" height="7" rx="1" fill="'+C.blue+'" opacity=".5"/>'+'<rect x="3" y="14" width="7" height="7" rx="1" fill="'+C.blue+'" opacity=".5"/>'+'<rect x="14" y="14" width="7" height="7" rx="1" fill="'+C.blue+'" />'+'</svg>'+'Overview &nbsp;&middot;&nbsp; '+coverageStr+'</div>';
+  H += sLabel('Overview &nbsp;&middot;&nbsp; '+coverageStr, C.blue);
   if (_smEmailCaptures && _smEmailCaptures.banner) {
     H += '<img src="'+_smEmailCaptures.banner+'" style="width:100%;border-radius:8px;border:1px solid '+C.border+';" alt="KPI Overview">';
   } else {
-    /* Fallback: KPI cards with icons */
+    /* Fallback: KPI cards with canvas-PNG icons (Outlook-safe) */
     var _bd = _smLastBanner||[];
     var _kClrs=[C.blue,C.purple,C.green,C.red];
-    var _kIcons=[
-      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="'+C.blue+'" stroke-width="2" stroke-linecap="round"/><circle cx="9" cy="7" r="4" stroke="'+C.blue+'" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="'+C.blue+'" stroke-width="2" stroke-linecap="round"/></svg>',
-      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="'+C.purple+'" stroke-width="2"/><circle cx="12" cy="12" r="6" stroke="'+C.purple+'" stroke-width="2"/><circle cx="12" cy="12" r="2" fill="'+C.purple+'"/></svg>',
-      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="2" y="14" width="4" height="8" rx="1" fill="'+C.green+'" opacity=".7"/><rect x="9" y="9" width="4" height="13" rx="1" fill="'+C.green+'" opacity=".85"/><rect x="16" y="4" width="4" height="18" rx="1" fill="'+C.green+'"/></svg>',
-      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="'+C.red+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-    ];
+    var _kIconTypes=[['people',C.blue],['target',C.purple],['bars',C.green],['star',C.red]];
     H += '<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid '+C.border+';border-radius:8px;overflow:hidden;">'
       +'<tr>';
     _bd.forEach(function(b,i){
-      H+='<td style="padding:12px 8px;text-align:center;border-right:1px solid '+C.border+';">'  
-        +'<div style="display:flex;justify-content:center;margin-bottom:4px;">'+(_kIcons[i]||'')+'</div>'
-        +'<div style="font-size:24px;font-weight:800;color:'+(_kClrs[i]||C.blue)+';">'+fmtVal(b.val)+'</div>'
-        +'<div style="font-size:11px;color:'+C.txSub+';margin-top:2px;">'+b.label+'</div>'
+      var _ic = _kIconTypes[i] || _kIconTypes[0];
+      H+='<td style="padding:12px 8px;text-align:center;border-right:1px solid '+C.border+';">'
+        +'<div style="margin:0 auto 5px;width:20px;">'+_emailIconImg(_ic[0],_ic[1],20)+'</div>'
+        +'<div style="font-size:22px;font-weight:800;color:'+(_kClrs[i]||C.blue)+';">'+fmtVal(b.val)+'</div>'
+        +'<div style="font-size:11px;color:'+C.txSub+';margin-top:3px;line-height:1.3;">'+b.label+'</div>'
         +'</td>';
     });
     H += '</tr></table>';
@@ -25508,13 +25578,13 @@ function smGetEmailHtml() {
 
   /* ── Icon helper (mirrors dashboard _aiIconSvg) ── */
   function _piIcon(type, col) {
-    if (type==='trend-up') return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18" stroke="'+col+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><polyline points="17 6 23 6 23 12" stroke="'+col+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    if (type==='trend-dn') return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6" stroke="'+col+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><polyline points="17 18 23 18 23 12" stroke="'+col+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    if (type==='check')    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="'+col+'" stroke-width="2"/><polyline points="9 12 11 14 15 10" stroke="'+col+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    if (type==='alert')    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="'+col+'" stroke-width="2"/><line x1="12" y1="9" x2="12" y2="13" stroke="'+col+'" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="17" x2="12.01" y2="17" stroke="'+col+'" stroke-width="2" stroke-linecap="round"/></svg>';
-    if (type==='partial')  return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="'+col+'" stroke-width="2"/><line x1="8" y1="12" x2="16" y2="12" stroke="'+col+'" stroke-width="2" stroke-linecap="round"/></svg>';
-    if (type==='bu')       return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="20" height="14" rx="2" stroke="'+col+'" stroke-width="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" stroke="'+col+'" stroke-width="2"/></svg>';
-    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="'+col+'" stroke-width="2"/><line x1="12" y1="8" x2="12" y2="8.01" stroke="'+col+'" stroke-width="2.5" stroke-linecap="round"/><line x1="12" y1="12" x2="12" y2="16" stroke="'+col+'" stroke-width="2" stroke-linecap="round"/></svg>';
+    if (type==='trend-up') return _emailIconImg('trend-up', col, 14);
+    if (type==='trend-dn') return _emailIconImg('trend-dn', col, 14);
+    if (type==='check')    return _emailIconImg('check',    col, 14);
+    if (type==='alert')    return _emailIconImg('alert',    col, 14);
+    if (type==='partial')  return _emailIconImg('partial',  col, 14);
+    if (type==='bu')       return _emailIconImg('bu',       col, 14);
+    return _emailIconImg('info', col, 14);
   }
 
   /* ── Card wrapper ── */
@@ -25522,14 +25592,14 @@ function smGetEmailHtml() {
 
   /* Header row */
   H += '<div style="padding:8px 12px;background:#F8F9FF;border-bottom:1px solid '+C.border+';display:flex;align-items:center;gap:7px;">';
-  H += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2a10 10 0 110 20A10 10 0 0112 2z" stroke="'+C.purple+'" stroke-width="2"/><path d="M12 8v4l3 3" stroke="'+C.purple+'" stroke-width="2" stroke-linecap="round"/></svg>';
-  H += '<span style="font-size:12px;font-weight:800;color:'+C.txBold+';">Program Insights</span>';
+  H += _emailIconImg('info', C.purple, 14);
+  H += '<span style="font-size:13px;font-weight:800;color:'+C.txBold+';">Program Insights</span>';
   H += '<span style="margin-left:auto;font-size:10px;background:#EEF2FF;color:'+C.purple+';padding:2px 8px;border-radius:10px;font-weight:600;">Auto-generated</span>';
   H += '</div>';
 
   /* What's New — always first */
   H += '<div style="padding:10px 12px;border-bottom:1px solid '+C.border+';border-left:3px solid '+C.blue+';">';
-  H += '<div style="font-size:12px;font-weight:800;color:'+C.txBold+';margin-bottom:4px;">What is USD Project Reach?</div>';
+  H += '<div style="font-size:13px;font-weight:800;color:'+C.txBold+';margin-bottom:4px;">What is USD Project Reach?</div>';
   H += '<div style="font-size:13px;color:'+C.tx+';line-height:1.5;">Project Reach is an early adoption initiative that targets clients with no utilization 3 months after being active in SAP Concur, proactively reaching out to offer support and showcase USD&#39;s features and benefits.</div>';
   H += '</div>';
 
@@ -25545,7 +25615,7 @@ function smGetEmailHtml() {
         + (_isLast ? '' : 'border-bottom:1px solid '+C.border+';')
         + 'border-left:3px solid '+_bc+';padding:9px 12px;">';
       H += '<span style="flex-shrink:0;margin-top:2px;">'+_piIcon(ins.icon, ins.color)+'</span>';
-      H += '<div style="font-size:12px;color:'+C.tx+';line-height:1.5;">'+ins.text+'</div>';
+      H += '<div style="font-size:13px;color:'+C.tx+';line-height:1.5;">'+ins.text+'</div>';
       H += '</div>';
     });
   } else {
@@ -25586,12 +25656,12 @@ function smGetEmailHtml() {
     _hapBullets.forEach(function(b) {
       H += '<div style="display:flex;align-items:flex-start;gap:7px;margin-bottom:5px;">'
         +'<span style="color:'+C.blue+';font-weight:900;font-size:15px;flex-shrink:0;line-height:1.4;">&#x2022;</span>'
-        +'<div style="font-size:12px;color:'+C.tx+';line-height:1.5;">'+b+'</div>'
+        +'<div style="font-size:13px;color:'+C.tx+';line-height:1.5;">'+b+'</div>'
         +'</div>';
     });
     H += '</div>';
     H += '<div style="padding:14px 16px;border-left:3px solid '+C.blue+';">';
-    H += '<div style="font-size:12px;font-weight:700;color:'+C.txBold+';margin-bottom:3px;">Fresh &amp; Noteworthy Updates</div>';
+    H += '<div style="font-size:13px;font-weight:700;color:'+C.txBold+';margin-bottom:3px;">Fresh &amp; Noteworthy Updates</div>';
     H += '<div style="font-size:13px;color:'+C.tx+';line-height:1.5;">Building on our momentum, Phase 2 will focus on long-standing customers with no utilization. Through targeted prioritization, we aim to extend the reach of our support initiatives and help more clients unlock the full value of SAP Concur.</div>';
     H += '</div>';
   }
@@ -25599,7 +25669,7 @@ function smGetEmailHtml() {
   /* What's Coming — always last when using live insights */
   if (_piData.length) {
     H += '<div style="padding:10px 12px;border-top:1px solid '+C.border+';border-left:3px solid '+C.purple+';">';
-    H += '<div style="font-size:12px;font-weight:700;color:'+C.txBold+';margin-bottom:3px;">Fresh &amp; Noteworthy Updates</div>';
+    H += '<div style="font-size:13px;font-weight:700;color:'+C.txBold+';margin-bottom:3px;">Fresh &amp; Noteworthy Updates</div>';
     H += '<div style="font-size:13px;color:'+C.tx+';line-height:1.5;">Building on our momentum, Phase 2 will focus on long-standing customers with no utilization. Through targeted prioritization, we aim to extend the reach of our support initiatives and help more clients unlock the full value of SAP Concur.</div>';
     H += '</div>';
   }
@@ -25689,11 +25759,7 @@ function smGetEmailHtml() {
   H += '<div style="border:1px solid '+C.border+';border-radius:10px;overflow:hidden;">';
   /* Dark-blue header bar */
   H += '<div style="padding:10px 14px;background:#003D8F;display:flex;align-items:center;gap:8px;">';
-  H += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none">'
-    +'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
-    +'<circle cx="9" cy="7" r="4" stroke="#fff" stroke-width="2"/>'
-    +'<path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="#fff" stroke-width="2" stroke-linecap="round"/>'
-    +'</svg>';
+  H += _emailIconImg('people', '#ffffff', 14);
   H += '<span style="font-size:11.5px;font-weight:700;color:#fff;letter-spacing:.06em;text-transform:uppercase;">Meet the Team</span>';
   H += '</div>';
   /* Row 1: Project Lead (35%) | Project Sponsors (65%) */
@@ -25703,8 +25769,7 @@ function smGetEmailHtml() {
   H += '<td style="width:35%;padding:10px 14px;vertical-align:top;border-right:1px solid '+C.border+';background:#F8FAFF;">';
   H += '<div style="font-size:10px;font-weight:700;color:'+C.txSub+';text-transform:uppercase;letter-spacing:.09em;margin-bottom:6px;">Project Lead</div>';
   H += '<span style="display:inline-flex;align-items:center;gap:5px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:20px;padding:3px 11px;">'
-    +'<svg width="11" height="11" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#0070F2" stroke-width="2"/>'
-    +'<path d="M4 20c0-4 3.58-7 8-7s8 3 8 7" stroke="#0070F2" stroke-width="2" stroke-linecap="round"/></svg>'
+    +_emailIconImg('people', '#0070F2', 11)
     +'<span style="font-size:12px;font-weight:600;color:#1D4ED8;">Lilibeth Di&#241;o</span>'
     +'</span>';
   H += '</td>';

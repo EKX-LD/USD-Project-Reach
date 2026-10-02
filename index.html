@@ -4214,13 +4214,6 @@ body.dark-mode .ra-th-frozen,
       </svg>
       <span>FAQ</span>
     </button>
-    <button class="btn-header" id="btnCopyLink" onclick="copyDashboardLink()" title="Copy dashboard link to clipboard" style="display:inline-flex;gap:5px;align-items:center;" aria-label="Copy dashboard link">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;">
-        <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></rect>
-        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-      </svg>
-      <span>Copy Link</span>
-    </button>
     <button class="btn-header" id="btnSignOut" onclick="signOut()" style="display: block;">Sign Out</button>
   </div>
 </header>
@@ -4971,68 +4964,6 @@ body.dark-mode .ra-th-frozen,
     </div>
     <!-- /Data Repair Tool -->
 
-    <!-- ── SharePoint Version Rollback ──────────────────────────────────── -->
-    <div id="spRollbackCard" style="background:#eff6ff;border:1px solid #3b82f6;border-radius:10px;padding:14px 18px;margin-bottom:14px;">
-      <div style="display:flex;align-items:flex-start;gap:12px;">
-        <div style="flex-shrink:0;padding-top:1px;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 3v5h5" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:13px;font-weight:700;color:#1e40af;margin-bottom:3px;">SharePoint Data Rollback</div>
-          <div style="font-size:12px;color:#1d4ed8;line-height:1.5;margin-bottom:10px;">
-            Restores <strong>Utilization, KB, and CASE</strong> to their state before the cutoff time using SharePoint version history.
-            Use this to undo a corrupt Utilization Wizard run without reloading any files.
-          </div>
-
-          <!-- Cutoff input row -->
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
-            <label style="font-size:12px;font-weight:600;color:#1e40af;white-space:nowrap;">Cutoff (Manila time):</label>
-            <input type="datetime-local" id="rbCutoffInput" value="2026-10-02T14:56"
-              style="font-size:12px;padding:4px 8px;border:1px solid #93c5fd;border-radius:5px;font-family:inherit;color:#1e3a8a;background:#fff;">
-            <button id="rbScanBtn" onclick="rollbackScan()"
-              style="padding:5px 14px;font-size:12px;font-weight:700;border:1px solid #3b82f6;border-radius:5px;background:#eff6ff;color:#1d4ed8;cursor:pointer;white-space:nowrap;">
-              Scan
-            </button>
-          </div>
-
-          <!-- Status line -->
-          <div id="rbStatus" style="font-size:12px;color:#1d4ed8;min-height:16px;margin-bottom:8px;"></div>
-
-          <!-- Confirm panel -->
-          <div id="rbConfirmPanel" style="display:none;padding:10px 14px;background:#dbeafe;border:1px solid #93c5fd;border-radius:6px;margin-bottom:8px;">
-            <div style="font-size:12px;color:#1e40af;margin-bottom:9px;line-height:1.5;">
-              Found <strong id="rbConfirmCount" style="color:#1d4ed8;"></strong> modified after the cutoff.
-              This will restore their <strong>Utilization, KB, and CASE</strong> values from SharePoint version history.
-              All months are covered — no files needed.
-            </div>
-            <div style="display:flex;gap:8px;">
-              <button onclick="rollbackCancel()"
-                style="padding:5px 14px;font-size:12px;border:1px solid #3b82f6;border-radius:5px;background:#fff;color:#1e40af;cursor:pointer;font-weight:600;">
-                Cancel
-              </button>
-              <button id="rbConfirmBtn" onclick="rollbackExecute()"
-                style="padding:5px 14px;font-size:12px;border:none;border-radius:5px;background:#2563eb;color:#fff;cursor:pointer;font-weight:700;">
-                Restore Now
-              </button>
-            </div>
-          </div>
-
-          <!-- Progress bar -->
-          <div id="rbProgPanel" style="display:none;margin-bottom:8px;">
-            <div id="rbProgText" style="font-size:12px;color:#1e40af;margin-bottom:5px;"></div>
-            <div style="height:6px;background:#bfdbfe;border-radius:3px;overflow:hidden;">
-              <div id="rbProgFill" style="height:100%;background:#2563eb;width:0%;transition:width .25s ease;border-radius:3px;"></div>
-            </div>
-          </div>
-
-          <!-- Done message -->
-          <div id="rbDonePanel" style="display:none;padding:8px 12px;background:#d1fae5;border:1px solid #6ee7b7;border-radius:6px;">
-            <div id="rbDoneMsg" style="font-size:12px;font-weight:600;color:#065f46;"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- /SharePoint Version Rollback -->
 
     <!-- Stepper track -->
     <div class="wiz-track util-wiz-track">
@@ -6275,69 +6206,53 @@ nrosati@jparks.com - No longer in the ro…</span><span class="notes-icon-btn" t
             </div>
           </div>
         </div>
-        <!-- Canonical Date Fill Tool -->
-        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:20px 24px;">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0070f2" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-            <h3 style="margin:0;font-size:14px;font-weight:700;color:#0f172a;">Canonical Date Fill Tool</h3>
-          </div>
-          <p style="font-size:12px;color:#64748b;margin:0 0 16px;">Bulk-write a schedule date to SharePoint for a specific task, enrollment period, and field. Only empty rows are updated.</p>
-          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:12px;margin-bottom:14px;">
-            <div>
-              <label style="display:block;font-size:11px;font-weight:700;color:#374151;margin-bottom:4px;">Task</label>
-              <select id="adminCdTask" onchange="adminCdAutoFill()" style="width:100%;font-size:12px;padding:6px 8px;border:1px solid #d1d5db;border-radius:4px;font-family:inherit;">
-                <option value="">-- Select --</option>
-                <option value="fyi2ao">FYI to 2nd Acct Owner</option>
-                <option value="fyifu">Follow-up the 2AO</option>
-                <option value="initial">Initial Reach Out</option>
-                <option value="ffup1">1st Follow-up</option>
-                <option value="ffup2">2nd Follow-up</option>
-                <option value="nonresp">Non-Responsive</option>
-              </select>
+
+        <!-- ── SharePoint Data Rollback ──────────────────────────── -->
+        <div style="background:#eff6ff;border:1px solid #3b82f6;border-radius:8px;padding:20px 24px;">
+          <div style="display:flex;align-items:flex-start;gap:12px;">
+            <div style="flex-shrink:0;padding-top:1px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 3v5h5" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </div>
-            <div>
-              <label style="display:block;font-size:11px;font-weight:700;color:#374151;margin-bottom:4px;">Enrollment Month</label>
-              <select id="adminCdMonth" onchange="adminCdAutoFill()" style="width:100%;font-size:12px;padding:6px 8px;border:1px solid #d1d5db;border-radius:4px;font-family:inherit;">
-                <option value="">-- Select --</option>
-                <option>April</option><option>May</option><option>June</option><option>July</option>
-                <option>August</option><option>September</option><option>October</option>
-                <option>November</option><option>December</option>
-                <option>January</option><option>February</option><option>March</option>
-              </select>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:14px;font-weight:700;color:#1e40af;margin-bottom:3px;">SharePoint Data Rollback</div>
+              <div style="font-size:12px;color:#1d4ed8;line-height:1.5;margin-bottom:10px;">
+                Restores <strong>Utilization, KB, and CASE</strong> to their state before the cutoff time using SharePoint version history.
+                Use this to undo a corrupt Utilization Wizard run without reloading any files.
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+                <label style="font-size:12px;font-weight:600;color:#1e40af;white-space:nowrap;">Cutoff (Manila time):</label>
+                <input type="datetime-local" id="rbCutoffInput" value="2026-10-02T14:56"
+                  style="font-size:12px;padding:4px 8px;border:1px solid #93c5fd;border-radius:5px;font-family:inherit;color:#1e3a8a;background:#fff;">
+                <button id="rbScanBtn" onclick="rollbackScan()"
+                  style="padding:5px 14px;font-size:12px;font-weight:700;border:1px solid #3b82f6;border-radius:5px;background:#eff6ff;color:#1d4ed8;cursor:pointer;white-space:nowrap;">
+                  Scan
+                </button>
+              </div>
+              <div id="rbStatus" style="font-size:12px;color:#1d4ed8;min-height:16px;margin-bottom:8px;"></div>
+              <div id="rbConfirmPanel" style="display:none;padding:10px 14px;background:#dbeafe;border:1px solid #93c5fd;border-radius:6px;margin-bottom:8px;">
+                <div style="font-size:12px;color:#1e40af;margin-bottom:9px;line-height:1.5;">
+                  Found <strong id="rbConfirmCount" style="color:#1d4ed8;"></strong> modified after the cutoff.
+                  This will restore their <strong>Utilization, KB, and CASE</strong> values from SharePoint version history.
+                  All months are covered &mdash; no files needed.
+                </div>
+                <div style="display:flex;gap:8px;">
+                  <button onclick="rollbackCancel()" style="padding:5px 14px;font-size:12px;border:1px solid #3b82f6;border-radius:5px;background:#fff;color:#1e40af;cursor:pointer;font-weight:600;">Cancel</button>
+                  <button id="rbConfirmBtn" onclick="rollbackExecute()" style="padding:5px 14px;font-size:12px;border:none;border-radius:5px;background:#2563eb;color:#fff;cursor:pointer;font-weight:700;">Restore Now</button>
+                </div>
+              </div>
+              <div id="rbProgPanel" style="display:none;margin-bottom:8px;">
+                <div id="rbProgText" style="font-size:12px;color:#1e40af;margin-bottom:5px;"></div>
+                <div style="height:6px;background:#bfdbfe;border-radius:3px;overflow:hidden;">
+                  <div id="rbProgFill" style="height:100%;background:#2563eb;width:0%;transition:width .25s ease;border-radius:3px;"></div>
+                </div>
+              </div>
+              <div id="rbDonePanel" style="display:none;padding:8px 12px;background:#d1fae5;border:1px solid #6ee7b7;border-radius:6px;">
+                <div id="rbDoneMsg" style="font-size:12px;font-weight:600;color:#065f46;"></div>
+              </div>
             </div>
-            <div>
-              <label style="display:block;font-size:11px;font-weight:700;color:#374151;margin-bottom:4px;">Enrollment Year</label>
-              <select id="adminCdYear" onchange="adminCdAutoFill()" style="width:100%;font-size:12px;padding:6px 8px;border:1px solid #d1d5db;border-radius:4px;font-family:inherit;">
-                <option value="2026">2026</option><option value="2025">2025</option><option value="2027">2027</option>
-              </select>
-            </div>
-            <div>
-              <label style="display:block;font-size:11px;font-weight:700;color:#374151;margin-bottom:4px;">Date to Apply</label>
-              <input type="date" id="adminCdDate" onchange="adminCdUpdatePreview()" style="width:100%;font-size:12px;padding:6px 8px;border:1px solid #d1d5db;border-radius:4px;font-family:inherit;box-sizing:border-box;">
-            </div>
-            <div>
-              <label style="display:block;font-size:11px;font-weight:700;color:#374151;margin-bottom:4px;">SP Date Column</label>
-              <select id="adminCdField" onchange="adminCdUpdatePreview()" style="width:100%;font-size:12px;padding:6px 8px;border:1px solid #d1d5db;border-radius:4px;font-family:inherit;">
-                <option value="">-- Select --</option>
-                <option value="field_19">FYI Email to 2nd Acct Owner: DATE</option>
-                <option value="FYIfollow_x002d_up2AO_x0028_3rdd">FYI follow-up 2AO (3rd day): DATE</option>
-                <option value="field_29">Initial Reach Out: DATE</option>
-                <option value="field_32">1ST ff-up: DATE</option>
-                <option value="field_35">2ND ff-up: DATE</option>
-                <option value="Non_x002d_responsive_x003a_DATE">Non-responsive: DATE</option>
-                <option value="field_14">Date of Recent Adoption / ProdSite</option>
-              </select>
-            </div>
-          </div>
-          <div id="adminCdPreview" style="padding:10px 14px;background:#f1f5f9;border-radius:6px;font-size:12px;color:#374151;margin-bottom:14px;min-height:36px;line-height:1.6;">Configure all fields above to see a preview.</div>
-          <div style="display:flex;gap:10px;align-items:center;">
-            <button id="adminCdApplyBtn" onclick="adminApplyCanonicalDates()" disabled="" style="padding:8px 20px;border:none;border-radius:4px;background:#0070f2;color:#fff;font-size:13px;font-weight:600;font-family:inherit;cursor:not-allowed;display:flex;align-items:center;gap:6px;opacity:.5;">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline></svg>
-              Apply to SharePoint
-            </button>
-            <span id="adminCdStatus" style="font-size:12px;color:#64748b;"></span>
           </div>
         </div>
+        <!-- /SharePoint Data Rollback -->
       </div><!-- /adminContent -->
     </div>
   </div><!-- /panel-admin -->

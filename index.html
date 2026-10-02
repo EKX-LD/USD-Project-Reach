@@ -681,12 +681,25 @@ function(e){return e.hasOwnProperty("tenant_discovery_endpoint")&&e.hasOwnProper
     body.dark-mode .livedate-btn-cancel{color:#94a3b8;border-color:#38414E;}
     body.dark-mode .livedate-btn-cancel:hover{background:#1B2028;color:#D0D8E8;}
     /* Live date chip */
-    .livedate-chip{display:flex;align-items:center;gap:10px;padding:9px 14px;background:var(--sap-light-sky);border:1px solid #89D1FF;border-radius:6px;font-size:13px;color:var(--sap-navy);margin-bottom:18px;flex-wrap:wrap;}
-    .livedate-chip-label{color:var(--sap-dark-gray);flex-shrink:0;}
-    .livedate-chip-val{font-weight:700;color:var(--sap-deep-navy);}
+    .livedate-chip{display:flex;flex-direction:column;gap:5px;padding:10px 14px;background:var(--sap-light-sky);border:1px solid #89D1FF;border-radius:6px;font-size:13px;color:var(--sap-navy);margin-bottom:18px;}
+    .livedate-chip-row{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;}
+    .livedate-chip-label{color:var(--sap-dark-gray);flex-shrink:0;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;min-width:155px;}
+    .livedate-chip-val{font-weight:700;color:var(--sap-deep-navy);font-size:13px;}
+    .livedate-chip-footer{display:flex;align-items:center;justify-content:flex-end;margin-top:3px;}
     .livedate-chip-sep{color:var(--sap-light-blue);flex-shrink:0;}
-    .livedate-chip-change{margin-left:auto;font-size:12px;color:var(--sap-interactive);cursor:pointer;font-weight:600;background:none;border:none;font-family:inherit;padding:2px 0;text-decoration:underline;text-underline-offset:2px;}
+    .livedate-chip-change{font-size:12px;color:var(--sap-interactive);cursor:pointer;font-weight:600;background:none;border:none;font-family:inherit;padding:2px 0;text-decoration:underline;text-underline-offset:2px;}
     .livedate-chip-change:hover{
+    /* Modal enrollment preview box */
+    .livedate-preview{margin-top:14px;background:#F0F7FF;border:1px solid #BFDBFE;border-radius:6px;padding:12px 14px;display:flex;flex-direction:column;gap:7px;}
+    .livedate-preview-row{display:flex;align-items:baseline;gap:8px;}
+    .livedate-preview-lbl{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#1D4ED8;min-width:145px;flex-shrink:0;}
+    .livedate-preview-val{font-size:13px;font-weight:700;color:#1e3a8a;}
+    body.dark-mode .livedate-preview{background:#0a2040;border-color:#1d4ed8;}
+    body.dark-mode .livedate-preview-lbl{color:#93c5fd;}
+    body.dark-mode .livedate-preview-val{color:#bfdbfe;}
+    /* Prominent date callout inside Step 2 upload cards */
+    .cri-date-callout{display:inline-flex;align-items:center;gap:7px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;padding:6px 12px;font-size:13px;font-weight:700;color:#1D4ED8;margin-top:2px;}
+    body.dark-mode .cri-date-callout{background:#0a2040;border-color:#1d4ed8;color:#93c5fd;}
     /* KPI status chips */
     .util-kpi-ongoing  { background:#f0fdf4; border-color:#86efac; color:#16a34a; }
     .util-kpi-completed{ background:#fafafa; border-color:#d1d5db; color:#6b7280; }
@@ -730,7 +743,7 @@ color:var(--sap-navy);}
     .step1-action{display:flex;align-items:center;gap:0;flex-shrink:0;}
     .btn-step1-open{display:inline-flex;align-items:center;gap:8px;background:var(--sap-interactive);color:var(--sap-white);border:none;padding:10px 22px;border-radius:6px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background .2s;white-space:nowrap;}
     .btn-step1-open:hover{background:var(--sap-navy);}
-    .step1-row .livedate-chip{margin-bottom:0;border:none;background:transparent;padding:0;}
+    .step1-row .livedate-chip{margin-bottom:0;}
 
     /* ── ANALYSIS SUMMARY TILE ─────────────────────────────── */
     .proc-summary-panel{margin-top:16px;background:#fff;border-radius:10px;border:1px solid var(--sap-light-gray);overflow:hidden;}
@@ -4275,7 +4288,7 @@ body.dark-mode .ra-th-frozen,
       <div class="wiz-step util-wiz-step s-active" id="eNode1" onclick="enrollStepClickNav(1)">
         <div class="uwiz-step-lhs">
           <div class="uwiz-step-num">1</div>
-          <span class="wiz-label">Live Date</span>
+          <span class="wiz-label">Enrollment</span>
         </div>
         <div class="uwiz-step-check"><svg class="uwiz-chk-svg" width="10" height="10" viewBox="0 0 12 12" fill="none"><polyline points="2 6 5 9 10 3" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline></svg></div>
       </div>
@@ -4307,8 +4320,8 @@ body.dark-mode .ra-th-frozen,
       <div class="wiz-pane-hd">
         <div class="wiz-pane-num">1</div>
         <div>
-          <div class="wiz-pane-title">Set Client Live Date</div>
-          <div class="wiz-pane-sub">Confirm the go-live month and year. This is used to set the Active Period for enrollment analysis.</div>
+          <div class="wiz-pane-title">Client Enrollment Details</div>
+          <div class="wiz-pane-sub">Select the enrollment month for this batch. The Active Period (4 months prior) and Utilization Review Coverage are calculated automatically.</div>
         </div>
       </div>
       <div class="wiz-pane-body">
@@ -4321,12 +4334,24 @@ body.dark-mode .ra-th-frozen,
         </button>
         <!-- After confirm: show chip with confirmed date -->
         <div class="livedate-chip" id="liveDateChip" style="display:none;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;color:var(--sap-interactive)"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"></rect><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
-          <span class="livedate-chip-label">Active Live Date:</span>
-          <span class="livedate-chip-val" id="liveDateDisplay"></span>
-          <span class="livedate-chip-sep">|</span>
-          <span style="font-size:12px;color:var(--sap-dark-gray);">Active Period auto-filled in Step 2</span>
-          <button class="livedate-chip-change" onclick="changeLiveDate()">Change</button>
+          <div class="livedate-chip-row">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;"><rect x="3" y="4" width="18" height="18" rx="2" stroke="var(--sap-interactive)" stroke-width="2"></rect><path d="M16 2v4M8 2v4M3 10h18" stroke="var(--sap-interactive)" stroke-width="2" stroke-linecap="round"></path></svg>
+            <span class="livedate-chip-label">Live Date (Active Month):</span>
+            <span class="livedate-chip-val" id="liveDateDisplay"></span>
+          </div>
+          <div class="livedate-chip-row">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;"><rect x="3" y="4" width="18" height="18" rx="2" stroke="var(--sap-interactive)" stroke-width="2"></rect><path d="M8 14h8M8 18h5" stroke="var(--sap-interactive)" stroke-width="2" stroke-linecap="round"></path><path d="M16 2v4M8 2v4M3 10h18" stroke="var(--sap-interactive)" stroke-width="2" stroke-linecap="round"></path></svg>
+            <span class="livedate-chip-label">Utilization Review Coverage:</span>
+            <span class="livedate-chip-val" id="liveDateCoverage"></span>
+          </div>
+          <div class="livedate-chip-row">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;"><path d="M12 20h9" stroke="var(--sap-interactive)" stroke-width="2" stroke-linecap="round"></path><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="var(--sap-interactive)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            <span class="livedate-chip-label">Enrollment Month:</span>
+            <span class="livedate-chip-val" id="liveDateEnrollDisplay"></span>
+          </div>
+          <div class="livedate-chip-footer">
+            <button class="livedate-chip-change" onclick="changeLiveDate()">Change</button>
+          </div>
         </div>
       </div>
         </div>
@@ -4357,7 +4382,7 @@ body.dark-mode .ra-th-frozen,
       <div class="upload-lock-overlay" id="uploadLockOverlay" style="display:none;">
         <div class="upload-lock-msg">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="2"></rect><path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-          <p>Confirm the Client Live Date above to enable file uploads</p>
+          <p>Confirm the Enrollment Month above to enable file uploads</p>
         </div>
       </div>
     <div class="cards-grid">
@@ -6936,15 +6961,15 @@ nrosati@jparks.com - No longer in the ro…</span><span class="notes-icon-btn" t
     <div class="livedate-hd">
       <div class="livedate-hd-title">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"></rect><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"></path></svg>
-        Client Live Date
+        Client Enrollment Details
       </div>
-      <div class="livedate-hd-sub">Specify the go-live month and year for this batch of clients. This will be used as the Active Period when the uploaded files are analyzed.</div>
+      <div class="livedate-hd-sub">Select the enrollment month for this batch. The Active Period (4 months prior) and Utilization Review Coverage are calculated automatically.</div>
     </div>
     <div class="livedate-body">
       <div class="livedate-row">
         <div class="livedate-field">
-          <label class="livedate-label" for="liveDateMonth">Month</label>
-          <select class="livedate-sel" id="liveDateMonth">
+          <label class="livedate-label" for="liveDateMonth">Enrollment Month</label>
+          <select class="livedate-sel" id="liveDateMonth" onchange="liveDateModalPreview()">
             <option value="">Select month</option>
             <option>January</option><option>February</option><option>March</option>
             <option>April</option><option>May</option><option>June</option>
@@ -6954,11 +6979,25 @@ nrosati@jparks.com - No longer in the ro…</span><span class="notes-icon-btn" t
         </div>
         <div class="livedate-field">
           <label class="livedate-label" for="liveDateYear">Year</label>
-          <select class="livedate-sel" id="liveDateYear"><option value="">Select year</option></select>
+          <select class="livedate-sel" id="liveDateYear" onchange="liveDateModalPreview()"><option value="">Select year</option></select>
         </div>
       </div>
-      <div class="livedate-note">Defaults to 3 months prior to the current month. Update if the actual live date differs.</div>
-      <div style="font-size:11.5px;color:var(--sap-dark-gray);margin-top:6px;opacity:.8;">This can be changed later from the Client Enrollment tab.</div>
+      <!-- Live preview of computed Active Period -->
+      <div class="livedate-preview" id="liveDatePreview" style="display:none;">
+        <div class="livedate-preview-row">
+          <span class="livedate-preview-lbl">Live Date (Active Month):</span>
+          <span class="livedate-preview-val" id="ldPreviewActive"></span>
+        </div>
+        <div class="livedate-preview-row">
+          <span class="livedate-preview-lbl">Utilization Review Coverage:</span>
+          <span class="livedate-preview-val" id="ldPreviewCoverage"></span>
+        </div>
+        <div class="livedate-preview-row">
+          <span class="livedate-preview-lbl">Enrollment Month:</span>
+          <span class="livedate-preview-val" id="ldPreviewEnroll"></span>
+        </div>
+      </div>
+      <div class="livedate-note">Defaults to the current month. Active Period is 4 months prior to the selected enrollment month.</div>
     </div>
     <div class="livedate-ft">
       <button class="livedate-btn-cancel" onclick="document.getElementById('liveDateOverlay').classList.add('hidden')">
@@ -11869,6 +11908,8 @@ function resetProc(){
 var liveDateConfirmed = false;
 var ldConfirmedMonth  = '';
 var ldConfirmedYear   = '';
+var ldEnrollMonth     = '';   /* enrollment month chosen by user */
+var ldEnrollYear      = '';   /* enrollment year chosen by user  */
 
 var LD_MONTHS = ['January','February','March','April','May','June',
                  'July','August','September','October','November','December'];
@@ -11886,11 +11927,10 @@ function showLiveDateModal() {
     }
   }
 
-  // Default: 3 months before current month (handles year rollback)
-  var today      = new Date();
-  var defMIdx    = today.getMonth() - 3;  // 0-based
-  var defYear    = today.getFullYear();
-  if (defMIdx < 0) { defMIdx += 12; defYear -= 1; }
+  // Default: current month (enrollment month = now; active = now - 4)
+  var today   = new Date();
+  var defMIdx = today.getMonth();   // 0-based, current month
+  var defYear = today.getFullYear();
 
   // Pre-select defaults (or keep current selection if already confirmed)
   if (!liveDateConfirmed) {
@@ -11899,7 +11939,6 @@ function showLiveDateModal() {
 
     var ySel2 = document.getElementById('liveDateYear');
     ySel2.value = String(defYear);
-    // If the year isn't in the list yet (edge case), add it
     if (ySel2.value !== String(defYear)) {
       var o2 = document.createElement('option');
       o2.value = String(defYear); o2.textContent = String(defYear);
@@ -11907,6 +11946,9 @@ function showLiveDateModal() {
       ySel2.value = String(defYear);
     }
   }
+
+  // Show the live preview immediately
+  liveDateModalPreview();
 
   // Hide upload buttons until user confirms
   [0,1,2].forEach(function(i) {
@@ -11921,20 +11963,67 @@ function showLiveDateModal() {
   document.getElementById('liveDateOverlay').classList.remove('hidden');
 }
 
+function liveDateModalPreview() {
+  var _M = LD_MONTHS;
+  var em = (document.getElementById('liveDateMonth') || {}).value || '';
+  var ey = (document.getElementById('liveDateYear')  || {}).value || '';
+  var prev = document.getElementById('liveDatePreview');
+  if (!prev) return;
+  if (!em || !ey) { prev.style.display = 'none'; return; }
+  var eIdx     = _M.indexOf(em);
+  var rawAIdx  = eIdx - 4;
+  var aIdx     = ((rawAIdx % 12) + 12) % 12;
+  var aYr      = parseInt(ey) + Math.floor(rawAIdx / 12);
+  var covEndRaw = aIdx + 3;
+  var covEndIdx = covEndRaw % 12;
+  var covEndYr  = aYr + Math.floor(covEndRaw / 12);
+  var aName    = _M[aIdx];
+  var covName  = _M[covEndIdx];
+  var sameYear = (aYr === covEndYr);
+  var covStr   = sameYear ? aName + ' \u2013 ' + covName + ' ' + aYr
+                           : aName + ' ' + aYr + ' \u2013 ' + covName + ' ' + covEndYr;
+  var pa = document.getElementById('ldPreviewActive');
+  var pc = document.getElementById('ldPreviewCoverage');
+  var pe = document.getElementById('ldPreviewEnroll');
+  if (pa) pa.textContent = aName + ' ' + aYr;
+  if (pc) pc.textContent = covStr;
+  if (pe) pe.textContent = em + ' ' + ey;
+  prev.style.display = '';
+}
+
 function confirmLiveDate() {
-  var month = document.getElementById('liveDateMonth').value;
-  var year  = document.getElementById('liveDateYear').value;
-  if (!month || !year) {
+  /* month/year from the modal = ENROLLMENT month/year (user selection) */
+  var enrollMon = document.getElementById('liveDateMonth').value;
+  var enrollYr  = document.getElementById('liveDateYear').value;
+  if (!enrollMon || !enrollYr) {
     showToast('Please select both month and year to continue.', 'error');
     return;
   }
+
+  /* Compute Active Month = Enrollment Month − 4 */
+  var _MONTHS    = LD_MONTHS;
+  var eIdx       = _MONTHS.indexOf(enrollMon);
+  var rawAIdx    = eIdx - 4;
+  var aIdx       = ((rawAIdx % 12) + 12) % 12;
+  var aYr        = parseInt(enrollYr) + Math.floor(rawAIdx / 12);
+  var activeName = _MONTHS[aIdx];
+  var activeYr   = String(aYr);
+
+  /* Utilization Review Coverage = Active through Active+3 */
+  var covEndRaw  = aIdx + 3;
+  var covEndIdx  = covEndRaw % 12;
+  var covEndYr   = aYr + Math.floor(covEndRaw / 12);
+  var covEndName = _MONTHS[covEndIdx];
+  var covStr     = (aYr === covEndYr)
+    ? activeName + ' \u2013 ' + covEndName + ' ' + aYr
+    : activeName + ' ' + aYr + ' \u2013 ' + covEndName + ' ' + covEndYr;
 
   /* ── Block if this Active Period already has enrolled clients in SP ──────── */
   if (splAllItems && splAllItems.length) {
     var _existCount = splAllItems.filter(function(it) {
       var f = it.fields || {};
-      return (f['field_16'] || '').trim() === month &&
-             String(f['field_17'] || '').trim() === year;
+      return (f['field_16'] || '').trim() === activeName &&
+             String(f['field_17'] || '').trim() === activeYr;
     }).length;
     if (_existCount > 0) {
       var _rmTitle  = document.getElementById('replaceMsgTitle');
@@ -11943,7 +12032,7 @@ function confirmLiveDate() {
       var _rmResume = document.getElementById('replaceResumeBtn');
       var _rmClose  = document.getElementById('replaceBtnClose');
       if (_rmTitle)  _rmTitle.textContent = 'Active Period Already In Use';
-      if (_rmSub)    _rmSub.innerHTML     = 'There are already <strong>' + _existCount + '</strong> client(s) enrolled for <strong>' + month + ' ' + year + '</strong>.';
+      if (_rmSub)    _rmSub.innerHTML     = 'There are already <strong>' + _existCount + '</strong> client(s) enrolled for Active Period <strong>' + activeName + ' ' + activeYr + '</strong> (Enrollment Month: ' + enrollMon + ' ' + enrollYr + ').';
       if (_rmDetail) _rmDetail.textContent = 'To change the one currently enrolled, please contact Lilibeth Dino, the App Developer for further assistance.';
       if (_rmResume) _rmResume.style.display = 'none';
       if (_rmClose)  _rmClose.textContent = 'OK, Got It';
@@ -11952,61 +12041,63 @@ function confirmLiveDate() {
     }
   }
 
-  ldConfirmedMonth  = month;
-  ldConfirmedYear   = year;
+  /* Store both active (ldConfirmedMonth/Year) and enrollment (ldEnrollMonth/Year) */
+  ldConfirmedMonth  = activeName;
+  ldConfirmedYear   = activeYr;
+  ldEnrollMonth     = enrollMon;
+  ldEnrollYear      = enrollYr;
   liveDateConfirmed = true;
   if (typeof enrollRefreshStepperChecks === 'function') enrollRefreshStepperChecks();
 
   // Close modal
   document.getElementById('liveDateOverlay').classList.add('hidden');
 
-  // Update chip
-  document.getElementById('liveDateDisplay').textContent = month + ' ' + year;
-  document.getElementById('liveDateChip').style.display  = 'flex';
+  // Update chip — three rows
+  var _dispEl  = document.getElementById('liveDateDisplay');
+  var _covEl   = document.getElementById('liveDateCoverage');
+  var _enrEl   = document.getElementById('liveDateEnrollDisplay');
+  if (_dispEl) _dispEl.textContent = activeName + ' ' + activeYr;
+  if (_covEl)  _covEl.textContent  = covStr;
+  if (_enrEl)  _enrEl.textContent  = enrollMon + ' ' + enrollYr;
+  document.getElementById('liveDateChip').style.display = 'flex';
 
   // Reveal upload buttons (they remain disabled until a file is selected)
   [0,1,2].forEach(function(i) {
     var b = document.getElementById('btnUpload-'+i);
     if (b) b.style.display = '';
   });
-  // Show chip, hide Upload Files step-1 button
+  // Show chip, hide step-1 open button
   var _btnS1 = document.getElementById('btnStep1Open');
   if (_btnS1) _btnS1.style.display = 'none';
 
   // Pre-fill Active Period in Step 2 analysis panel
   var amEl = document.getElementById('procActiveMonth');
   var ayEl = document.getElementById('procActiveYear');
-  if (amEl) amEl.value = month;
-  if (ayEl) { ayEl.value = year; }
-  // Update the read-only display
+  if (amEl) amEl.value = activeName;
+  if (ayEl) ayEl.value = activeYr;
   var _adv = document.getElementById('procActiveDisplayVal');
-  if (_adv) _adv.textContent = month + ' ' + year;
+  if (_adv) _adv.textContent = activeName + ' ' + activeYr;
   if (typeof checkProcReady === 'function') checkProcReady();
 
-  // Compute Enrollment Period: Active + 4 months
-  // (review window covers Active through Active+3; enrollment batch = Active+4)
-  var _MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  var _mIdx = _MONTHS.indexOf(month);
-  var _enrollMIdx = (_mIdx + 4) % 12;
-  var _enrollYr   = parseInt(year) + (_mIdx + 4 >= 12 ? 1 : 0);
-  var _enrollName = _MONTHS[_enrollMIdx];
+  // Fill Enrollment Period fields (= the month the user selected)
   var _emEl = document.getElementById('procEnrollMonth');
   var _eyEl = document.getElementById('procEnrollYear');
-  if (_emEl) _emEl.value = _enrollName;
-  if (_eyEl) _eyEl.value = String(_enrollYr);
+  if (_emEl) _emEl.value = enrollMon;
+  if (_eyEl) _eyEl.value = enrollYr;
   var _evEl = document.getElementById('procEnrollVal');
-  if (_evEl) _evEl.textContent = _enrollName + ' ' + _enrollYr;
+  if (_evEl) _evEl.textContent = enrollMon + ' ' + enrollYr;
 
   // Lift upload lock overlay
   var _lockOv = document.getElementById('uploadLockOverlay');
   if (_lockOv) _lockOv.style.display = 'none';
 
-  addLog('Live Date confirmed: ' + month + ' ' + year + '. Enrollment period set to ' + _enrollName + ' ' + _enrollYr + '.', 'info');
+  addLog('Enrollment confirmed: Active = ' + activeName + ' ' + activeYr + ', Coverage = ' + covStr + ', Enrollment = ' + enrollMon + ' ' + enrollYr + '.', 'info');
+
   /* Wizard: advance to upload step + enable next */
   var _wizBtn1 = document.getElementById('eNext1');
   if (_wizBtn1) _wizBtn1.disabled = false;
   var _wizH1   = document.getElementById('eHint1');
-  if (_wizH1)   _wizH1.textContent = 'Live date set to ' + month + ' ' + year;
+  if (_wizH1)   _wizH1.textContent = 'Enrollment set \u2014 Active: ' + activeName + ' | Coverage: ' + covStr + ' | Enrollment: ' + enrollMon;
   enrollStepGo(2);
 }
 
@@ -12018,6 +12109,8 @@ function resetLiveDate() {
   liveDateConfirmed = false;
   ldConfirmedMonth  = '';
   ldConfirmedYear   = '';
+  ldEnrollMonth     = '';
+  ldEnrollYear      = '';
   var ol = document.getElementById('liveDateOverlay');
   if (ol) ol.classList.add('hidden');
   var chip = document.getElementById('liveDateChip');
@@ -25317,15 +25410,11 @@ function smGetEmailHtml() {
       +'<td width="'+(compact?'2':'4')+'"></td>'
       +miniCell(r.withUtil,'Util. Growth',C.green,null)
       +'</tr></table>'
-      +'<div style="display:flex;align-items:baseline;gap:'+(compact?'3px':'5px')+';margin-bottom:2px;">'
-      +'<div style="font-size:10.5px;color:'+C.txSub+';font-weight:600;text-transform:uppercase;letter-spacing:.04em;">Success Rate</div>'
-      +'<div style="font-size:'+(compact?'15px':'20px')+';font-weight:800;color:'+barClr+';line-height:1;">'+(rate!==null?rate.toFixed(1)+'%':'\u2014')+'</div>'
-      +'<div style="margin-left:auto;font-size:'+(compact?'9px':'11px')+';color:'+C.txSub+';">Goal Att.: <span style="font-weight:700;color:'+gaClr+';">'+gaStr+'</span></div>'
+      +'<div style="text-align:center;margin:4px 0 2px;">'
+      +'<div style="font-size:10.5px;color:'+C.txSub+';font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">Success Rate</div>'
+      +'<div style="font-size:'+(compact?'22px':'28px')+';font-weight:800;color:'+barClr+';line-height:1;">'+(rate!==null?rate.toFixed(1)+'%':'\u2014')+'</div>'
+      +'<div style="font-size:'+(compact?'9px':'11px')+';color:'+C.txSub+';margin-top:3px;">Goal Att.: <span style="font-weight:700;color:'+gaClr+';">'+gaStr+'</span></div>'
       +'</div>'
-      +'<div style="height:4px;border-radius:2px;background:'+C.barTrack+';overflow:hidden;margin-bottom:2px;">'
-      +'<div style="width:'+barPct+'%;height:100%;background:'+barClr+';border-radius:3px;"></div>'
-      +'</div>'
-      +'<div style="font-size:10px;color:'+C.txSub+';">&#45;&#45; 20% target line</div>'
       +'</div>';
   }
 
@@ -25426,6 +25515,166 @@ function smGetEmailHtml() {
   /* ── Section label ── */
   function sLabel(text, clr) {
     return '<div style="font-size:11px;font-weight:800;color:'+(clr||C.txBold)+';text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid '+(clr||C.border)+';opacity:.9;">'+text+'</div>';
+  }
+
+  /* ── Trend table → Canvas PNG (572×variable px @2×) ── */
+  function _smBuildTrendCanvas() {
+    try {
+      var S = 2;
+      var W = 572;
+      var hdrH = 34;
+      var rowH = 30;
+      var nRows = allRows.length;
+      var TH = hdrH + nRows * rowH;
+
+      var cv = document.createElement('canvas');
+      cv.width = W * S; cv.height = TH * S;
+      var ctx = cv.getContext('2d');
+      ctx.scale(S, S);
+
+      /* rounded-rect helper */
+      function rrect(x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x+r, y); ctx.lineTo(x+w-r, y);
+        ctx.arcTo(x+w, y, x+w, y+r, r);
+        ctx.lineTo(x+w, y+h-r);
+        ctx.arcTo(x+w, y+h, x+w-r, y+h, r);
+        ctx.lineTo(x+r, y+h);
+        ctx.arcTo(x, y+h, x, y+h-r, r);
+        ctx.lineTo(x, y+r);
+        ctx.arcTo(x, y, x+r, y, r);
+        ctx.closePath();
+      }
+
+      /* col layout — total 572px */
+      var cols = [
+        {x:0,   w:195, label:'Cohort',       lClr:C.txBold, align:'left' },
+        {x:195, w:55,  label:'Active',        lClr:C.tx,     align:'right'},
+        {x:250, w:55,  label:'KPI',           lClr:C.blue,   align:'right'},
+        {x:305, w:55,  label:'Util.',         lClr:C.green,  align:'right'},
+        {x:360, w:212, label:'Success Rate',  lClr:C.txBold, align:'left' }
+      ];
+
+      /* clip to rounded rect */
+      ctx.save();
+      rrect(0.5, 0.5, W-1, TH-1, 8);
+      ctx.clip();
+
+      /* background */
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, W, TH);
+
+      /* header band */
+      ctx.fillStyle = '#F8FAFF';
+      ctx.fillRect(0, 0, W, hdrH);
+
+      /* header text */
+      ctx.textBaseline = 'middle';
+      cols.forEach(function(col) {
+        ctx.fillStyle = col.lClr;
+        ctx.font = '700 11.5px Arial,sans-serif';
+        ctx.textAlign = col.align;
+        var tx = col.align === 'right' ? col.x + col.w - 8 : col.x + 10;
+        ctx.fillText(col.label, tx, hdrH / 2);
+      });
+
+      /* header bottom border */
+      ctx.strokeStyle = C.border;
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(0, hdrH); ctx.lineTo(W, hdrH); ctx.stroke();
+
+      /* data rows */
+      allRows.forEach(function(r, i) {
+        var y = hdrH + i * rowH;
+        ctx.fillStyle = i % 2 === 0 ? '#ffffff' : '#FAFAFA';
+        ctx.fillRect(0, y, W, rowH);
+
+        ctx.strokeStyle = '#F3F4F6';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(0, y + rowH); ctx.lineTo(W, y + rowH); ctx.stroke();
+
+        var midY = y + rowH / 2;
+        var done = r.kpiSortVal < nowKpiSort;
+        var rate = r.successRate;
+        var clr  = rClr(rate);
+
+        ctx.textBaseline = 'middle';
+
+        /* Col 0 — cohort name */
+        ctx.fillStyle = C.txBold;
+        ctx.font = '700 12px Arial,sans-serif';
+        ctx.textAlign = 'left';
+        var cohortLabel = r.em + ' ' + r.ey;
+        ctx.fillText(cohortLabel, 10, midY);
+
+        /* "Concluded" badge */
+        if (done) {
+          var nw = ctx.measureText(cohortLabel).width;
+          var bx = 10 + nw + 5, bw = 69, bh = 15, br = 8;
+          var by = midY - bh / 2;
+          ctx.fillStyle = '#F1F5F9';
+          rrect(bx, by, bw, bh, br); ctx.fill();
+          ctx.strokeStyle = '#CBD5E1'; ctx.lineWidth = 0.5;
+          rrect(bx, by, bw, bh, br); ctx.stroke();
+          ctx.fillStyle = '#64748B';
+          ctx.font = '600 9px Arial,sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('Concluded', bx + bw / 2, midY);
+        }
+
+        /* Col 1 — Active */
+        ctx.fillStyle = C.tx;
+        ctx.font = '400 12px Arial,sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(fmtVal(r.totalActiveInPeriod), cols[1].x + cols[1].w - 8, midY);
+
+        /* Col 2 — KPI */
+        ctx.fillStyle = C.blue;
+        ctx.font = '600 12px Arial,sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(fmtVal(r.kpiYes), cols[2].x + cols[2].w - 8, midY);
+
+        /* Col 3 — Util */
+        ctx.fillStyle = C.green;
+        ctx.font = '600 12px Arial,sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(fmtVal(r.withUtil), cols[3].x + cols[3].w - 8, midY);
+
+        /* Col 4 — Success Rate: bar on top half + pct text right-aligned */
+        var sx   = cols[4].x + 8;
+        var sw   = cols[4].w - 56;     /* bar track width */
+        var sh   = 5;
+        var pct  = rate !== null ? Math.min(100, rate / 30 * 100) : 0;
+        var barY = midY - 1;           /* center of bar */
+
+        /* bar track */
+        ctx.fillStyle = C.barTrack;
+        rrect(sx, barY - sh/2, sw, sh, 2); ctx.fill();
+
+        /* bar fill */
+        if (pct > 0) {
+          ctx.fillStyle = clr;
+          rrect(sx, barY - sh/2, sw * pct / 100, sh, 2); ctx.fill();
+        }
+
+        /* percentage label */
+        ctx.fillStyle = clr;
+        ctx.font = '700 11.5px Arial,sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(rate !== null ? rate.toFixed(1) + '%' : '\u2014',
+                     cols[4].x + cols[4].w - 8, midY);
+      });
+
+      ctx.restore();
+
+      /* outer border */
+      ctx.strokeStyle = C.border;
+      ctx.lineWidth = 1;
+      rrect(0.5, 0.5, W-1, TH-1, 8); ctx.stroke();
+
+      cv._trendH = TH;
+      return cv;
+    } catch(e) { return null; }
   }
 
   /* ── Build email ── */
@@ -25535,8 +25784,17 @@ function smGetEmailHtml() {
   /* ══ 4. Success Rate Trend ══ */
   H += '<div style="margin-bottom:14px;">';
   H += sLabel('Success Rate Trend', C.txBold);
-  if (_smEmailCaptures && _smEmailCaptures.trend) {
-    H += '<img src="'+_smEmailCaptures.trend+'" width="520" style="width:100%;max-width:520px;height:auto;display:block;border-radius:8px;" alt="Success Rate Trend">';
+  /* Prefer sharp canvas-drawn PNG; fall back to screenshot capture; last resort HTML table */
+  var _trendCv  = _smBuildTrendCanvas();
+  var _trendUrl = _trendCv ? _trendCv.toDataURL('image/png')
+                : (_smEmailCaptures && _smEmailCaptures.trend ? _smEmailCaptures.trend : null);
+  var _trendH   = _trendCv ? _trendCv._trendH : 214;
+  if (_trendUrl) {
+    H += '<div style="text-align:center;">'
+      +'<img src="'+_trendUrl+'" width="572" height="'+_trendH+'"'
+      +' style="display:block;width:100%;max-width:572px;height:auto;margin:0 auto;border-radius:8px;"'
+      +' alt="Success Rate Trend">'
+      +'</div>';
   } else {
     /* Fallback: clean table */
     H += '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:1px solid '+C.border+';border-radius:8px;overflow:hidden;font-size:13px;">'
@@ -26462,24 +26720,34 @@ function enrollStepGo(n, data) {
     else if (enrollIsStepDone(j)) { nd.classList.add('s-complete'); }
   }
 
-  // Reflect live date badge in panes 2/3
+  // Reflect enrollment details badge in panes 2/3
   if (n >= 2 && typeof ldConfirmedMonth !== 'undefined' && ldConfirmedMonth) {
-    var badge = 'Live Date: ' + ldConfirmedMonth + ' ' + ldConfirmedYear;
+    var badge = 'Active: ' + ldConfirmedMonth + ' ' + ldConfirmedYear
+      + (ldEnrollMonth ? '  \u2022  Enrollment: ' + ldEnrollMonth + ' ' + ldEnrollYear : '');
     var b2 = document.getElementById('enrollDateBadge');
     var b3 = document.getElementById('enrollDateBadge2');
     if (b2) { b2.textContent = badge; b2.style.display = ''; }
     if (b3) { b3.textContent = badge; b3.style.display = ''; }
 
-    // ── Enrollment month callout: replace generic text with computed specific month ──
+    // ── Prominent date callout in Case + KB upload cards ──────────────────
     if (n === 2) {
-      var _eIdx = LD_MONTHS.indexOf(ldConfirmedMonth) + 3;          // 0-based + 3
-      var _eMon = LD_MONTHS[_eIdx % 12];
-      var _eYr  = String(parseInt(ldConfirmedYear, 10) + Math.floor(_eIdx / 12));
-      // Same year → omit year on start month; different years → include both
-      var _startLabel = (ldConfirmedYear === _eYr)
-        ? ldConfirmedMonth
-        : ldConfirmedMonth + ' ' + ldConfirmedYear;
-      var _noteHTML = '<strong>Data: ' + _startLabel + ' \u2013 ' + _eMon + ' ' + _eYr + '</strong>';
+      // Active period = ldConfirmedMonth/Year; coverage end = active + 3
+      var _aIdx    = LD_MONTHS.indexOf(ldConfirmedMonth);
+      var _endRaw  = _aIdx + 3;
+      var _eMon    = LD_MONTHS[_endRaw % 12];
+      var _eYr     = String(parseInt(ldConfirmedYear, 10) + Math.floor(_endRaw / 12));
+      var _sameYr  = (ldConfirmedYear === _eYr);
+      var _startLbl = _sameYr ? ldConfirmedMonth : ldConfirmedMonth + ' ' + ldConfirmedYear;
+      var _covLabel = _startLbl + ' \u2013 ' + _eMon + ' ' + _eYr;
+      var _noteHTML = '<span style="display:inline-flex;align-items:center;gap:7px;'
+        + 'background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;'
+        + 'padding:6px 12px;font-size:13px;font-weight:700;color:#1D4ED8;line-height:1.3;">'
+        + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;">'
+        + '<rect x="3" y="4" width="18" height="18" rx="2" stroke="#1D4ED8" stroke-width="2"/>'
+        + '<path d="M16 2v4M8 2v4M3 10h18" stroke="#1D4ED8" stroke-width="2" stroke-linecap="round"/>'
+        + '</svg>'
+        + 'Report date filter:&nbsp;<span style="color:#1E40AF;">' + _covLabel + '</span>'
+        + '</span>';
       [1, 2].forEach(function(ci) {
         var el = document.getElementById('criEnrollText-' + ci);
         if (el) el.innerHTML = _noteHTML;

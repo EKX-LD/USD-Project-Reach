@@ -25992,13 +25992,13 @@ function smGetEmailHtml() {
 
   /* ══ 2. Recently Concluded Month (July Cohort) ══ */
   if (recentDone) {
-    H += '<div style="margin-bottom:14px;">';
+    H += '<div style="margin-bottom:14px;background:#F1F5F9;border-radius:10px;padding:14px 16px;border:1px solid #CBD5E1;">';
     H += sLabel('Recently Concluded Month', '#475569');
     if (_smEmailCaptures && _smEmailCaptures.concluded) {
       /* Full-width centered image */
       H += '<div style="text-align:center;">'
         +'<img src="'+_smEmailCaptures.concluded+'" width="490"'
-        +' style="width:100%;max-width:490px;display:inline-block;border-radius:8px;border:1px solid '+C.border+';"'
+        +' style="width:100%;max-width:490px;display:inline-block;border-radius:8px;border:1px solid #CBD5E1;"'
         +' alt="'+recentDone.em+' Cohort — Recently Concluded">'
         +'</div>';
     } else {

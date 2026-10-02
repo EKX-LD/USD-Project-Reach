@@ -13407,14 +13407,14 @@ function _raGetContextItems(excludeField) {
     }
 
     // Non-responsive FYI 2AO task — show only eligible clients:
-    // Utilization=No, KPI Added=Yes, USD active (not blank / Deactivated)
+    // Utilization=No, KPI not explicitly removed/excluded/no, USD active (not blank / Deactivated)
     if (task === 'nonresp') {
       var _utlNR2 = String(f['field_25'] || '').trim().toLowerCase();
       var _kpiNR2 = String(f['field_24'] || '').trim().toLowerCase();
       var _usdNR2 = String(f['field_8']  || '').trim();
-      if (_utlNR2 !== 'no')                      return false;  // Utilization must be No
-      if (_kpiNR2 !== 'yes')                     return false;  // KPI Added must be Yes
-      if (!_usdNR2 || _usdNR2 === 'Deactivated') return false;  // USD must be active
+      if (_utlNR2 !== 'no')                                                  return false;  // Utilization must be No
+      if (_kpiNR2 === 'no' || _kpiNR2 === 'removed' || _kpiNR2 === 'excluded') return false;  // KPI explicitly negative
+      if (!_usdNR2 || _usdNR2 === 'Deactivated')                             return false;  // USD must be active
     }
 
     return true;
@@ -13531,14 +13531,14 @@ function raApplyFilters() {
     }
 
     // Non-responsive FYI 2AO task — show only eligible clients:
-    // Utilization=No, KPI Added=Yes, USD active (not blank / Deactivated)
+    // Utilization=No, KPI not explicitly removed/excluded/no, USD active (not blank / Deactivated)
     if (task === 'nonresp') {
       var _utlNR = String(f['field_25'] || '').trim().toLowerCase();
       var _kpiNR = String(f['field_24'] || '').trim().toLowerCase();
       var _usdNR = String(f['field_8']  || '').trim();
-      if (_utlNR !== 'no')                     return false;  // Utilization must be No
-      if (_kpiNR !== 'yes')                    return false;  // KPI Added must be Yes
-      if (!_usdNR || _usdNR === 'Deactivated') return false;  // USD must be active
+      if (_utlNR !== 'no')                                               return false;  // Utilization must be No
+      if (_kpiNR === 'no' || _kpiNR === 'removed' || _kpiNR === 'excluded') return false;  // KPI explicitly negative
+      if (!_usdNR || _usdNR === 'Deactivated')                           return false;  // USD must be active
     }
 
     // Global text search across visible columns

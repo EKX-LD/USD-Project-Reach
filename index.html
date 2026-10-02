@@ -13412,9 +13412,9 @@ function _raGetContextItems(excludeField) {
       var _utlNR2 = String(f['field_25'] || '').trim().toLowerCase();
       var _kpiNR2 = String(f['field_24'] || '').trim().toLowerCase();
       var _usdNR2 = String(f['field_8']  || '').trim();
-      if (_utlNR2 !== 'no')                                                  return false;  // Utilization must be No
-      if (_kpiNR2 === 'no' || _kpiNR2 === 'removed' || _kpiNR2 === 'excluded') return false;  // KPI explicitly negative
-      if (!_usdNR2 || _usdNR2 === 'Deactivated')                             return false;  // USD must be active
+      if (_utlNR2 !== 'no')                      return false;  // Utilization must be No
+      if (_kpiNR2 !== 'yes')                     return false;  // KPI Added must be Yes
+      if (!_usdNR2 || _usdNR2 === 'Deactivated') return false;  // USD must be active
     }
 
     return true;
@@ -13536,9 +13536,9 @@ function raApplyFilters() {
       var _utlNR = String(f['field_25'] || '').trim().toLowerCase();
       var _kpiNR = String(f['field_24'] || '').trim().toLowerCase();
       var _usdNR = String(f['field_8']  || '').trim();
-      if (_utlNR !== 'no')                                               return false;  // Utilization must be No
-      if (_kpiNR === 'no' || _kpiNR === 'removed' || _kpiNR === 'excluded') return false;  // KPI explicitly negative
-      if (!_usdNR || _usdNR === 'Deactivated')                           return false;  // USD must be active
+      if (_utlNR !== 'no')                     return false;  // Utilization must be No
+      if (_kpiNR !== 'yes')                    return false;  // KPI Added must be Yes
+      if (!_usdNR || _usdNR === 'Deactivated') return false;  // USD must be active
     }
 
     // Global text search across visible columns
@@ -26123,16 +26123,17 @@ function smGetEmailHtml() {
     var _bd = _smLastBanner||[];
     var _kClrs=[C.blue,C.purple,C.green,C.red];
     var _kIconTypes=[['people',C.blue],['target',C.purple],['bars',C.green],['star',C.red]];
-    H += '<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid '+C.border+';border-radius:8px;overflow:hidden;">';
+    H += '<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid '+C.border+';border-radius:8px;overflow:hidden;">'
+      +'<tr>';
     _bd.forEach(function(b,i){
       var _ic = _kIconTypes[i] || _kIconTypes[0];
-      H+='<tr><td style="padding:12px 8px;text-align:center;border-bottom:1px solid '+C.border+';">'
+      H+='<td style="padding:12px 8px;text-align:center;border-right:1px solid '+C.border+';">'
         +'<div style="margin:0 auto 5px;width:20px;">'+_emailIconImg(_ic[0],_ic[1],20)+'</div>'
         +'<div style="font-size:22px;font-weight:800;color:'+(_kClrs[i]||C.blue)+';">'+fmtVal(b.val)+'</div>'
         +'<div style="font-size:13px;color:'+C.txSub+';margin-top:3px;line-height:1.3;">'+b.label+'</div>'
-        +'</td></tr>';
+        +'</td>';
     });
-    H += '</table>';
+    H += '</tr></table>';
   }
   H += '</div>';
 

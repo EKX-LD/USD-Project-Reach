@@ -10133,15 +10133,46 @@ async function splFetchItems(token) {
     localStorage.setItem('usd_splDataCache', JSON.stringify({ts:Date.now(), items:splAllItems}));
   } catch(e) {}
   raTaskDrawerRefreshIfOpen(); /* refresh task drawer if open */
-  /* ── In-memory compute: set field_25='No' when KB+CASE=0 and Utilization is blank ── */
+  /* ── In-memory compute: derive field_25 (Utilization) from KB + CASE when blank ──
+       Yes  → client has at least one CASE or KB entry
+       No   → both CASE and KB are zero / blank
+       Blank records are also queued for a silent SP backfill so SharePoint stays clean. ── */
+  var _utilNeedsPatch = [];
   splAllItems.forEach(function(it) {
     if (!it.fields) return;
     var _utl = String(it.fields['field_25']||'').trim();
     if (_utl) return;  /* already has a value — respect it */
     var _kb   = parseInt(String(it.fields['field_26']||'').replace(/[^0-9]/g,''))||0;
     var _case = parseInt(String(it.fields['field_27']||'').replace(/[^0-9]/g,''))||0;
-    if (_kb + _case === 0) it.fields['field_25'] = 'No';
+    var _val  = (_kb + _case > 0) ? 'Yes' : 'No';
+    it.fields['field_25'] = _val;
+    _utilNeedsPatch.push({ id: it.id, val: _val });
   });
+  /* ── Silent SP backfill: write computed Yes/No back to SharePoint for blank records ── */
+  if (_utilNeedsPatch.length) {
+    (async function(_list) {
+      try {
+        var token = await getAccessToken();
+        var _ok = 0, _err = 0;
+        for (var _i = 0; _i < _list.length; _i++) {
+          try {
+            await utilPatchSpItem(_list[_i].id, { 'field_25': _list[_i].val }, token);
+            _ok++;
+          } catch(e) { _err++; }
+          if ((_i + 1) % 10 === 0) await new Promise(function(r){ setTimeout(r, 0); });
+        }
+        if (typeof addLog === 'function')
+          addLog('Utilization backfill: ' + _ok + ' record' + (_ok !== 1 ? 's' : '') + ' patched to SharePoint' + (_err ? ', ' + _err + ' failed' : '') + '.', _err ? 'warn' : 'success');
+        if (_err === 0)
+          showToast('Utilization: ' + _ok + ' blank record' + (_ok !== 1 ? 's' : '') + ' auto-patched in SharePoint.', 'success');
+        else
+          showToast('Utilization backfill: ' + _ok + ' patched, ' + _err + ' failed. Check log.', 'warning');
+      } catch(e) {
+        if (typeof addLog === 'function')
+          addLog('Utilization backfill skipped (auth): ' + (e.message||e), 'warn');
+      }
+    })(_utilNeedsPatch);
+  }
   splFiltered  = [...items];
   clFiltered   = items.filter(function(i){ return (((i.fields||{})['field_24']||'').trim().toLowerCase() !== 'excluded'); });
   splPage = 1;

@@ -25591,10 +25591,7 @@ function smGetEmailHtml() {
   var dateStr    = _MONS[_now.getMonth()] + ' ' + _now.getDate() + ', ' + _now.getFullYear();
 
   /* ── Row sets ── */
-  /* ── Before the 10th: exclude the current month's cohort ── */
-  var _enrollCutoff = _now.getDate() < 10
-    ? (_now.getFullYear()*100 + _now.getMonth() - 1)
-    : (_now.getFullYear()*100 + _now.getMonth());
+  var _enrollCutoff = _now.getFullYear()*100 + _now.getMonth();
   var allRows = (_smLastRows||[]).slice()
     .filter(function(r){ return r.sortVal <= _enrollCutoff; })
     .sort(function(a,b){ return a.sortVal-b.sortVal; });

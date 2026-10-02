@@ -10136,43 +10136,15 @@ async function splFetchItems(token) {
   /* ── In-memory compute: derive field_25 (Utilization) from KB + CASE when blank ──
        Yes  → client has at least one CASE or KB entry
        No   → both CASE and KB are zero / blank
-       Blank records are also queued for a silent SP backfill so SharePoint stays clean. ── */
-  var _utilNeedsPatch = [];
+       Display only — does NOT write back to SharePoint automatically. ── */
   splAllItems.forEach(function(it) {
     if (!it.fields) return;
     var _utl = String(it.fields['field_25']||'').trim();
     if (_utl) return;  /* already has a value — respect it */
     var _kb   = parseInt(String(it.fields['field_26']||'').replace(/[^0-9]/g,''))||0;
     var _case = parseInt(String(it.fields['field_27']||'').replace(/[^0-9]/g,''))||0;
-    var _val  = (_kb + _case > 0) ? 'Yes' : 'No';
-    it.fields['field_25'] = _val;
-    _utilNeedsPatch.push({ id: it.id, val: _val });
+    it.fields['field_25'] = (_kb + _case > 0) ? 'Yes' : 'No';
   });
-  /* ── Silent SP backfill: write computed Yes/No back to SharePoint for blank records ── */
-  if (_utilNeedsPatch.length) {
-    (async function(_list) {
-      try {
-        var token = await getAccessToken();
-        var _ok = 0, _err = 0;
-        for (var _i = 0; _i < _list.length; _i++) {
-          try {
-            await utilPatchSpItem(_list[_i].id, { 'field_25': _list[_i].val }, token);
-            _ok++;
-          } catch(e) { _err++; }
-          if ((_i + 1) % 10 === 0) await new Promise(function(r){ setTimeout(r, 0); });
-        }
-        if (typeof addLog === 'function')
-          addLog('Utilization backfill: ' + _ok + ' record' + (_ok !== 1 ? 's' : '') + ' patched to SharePoint' + (_err ? ', ' + _err + ' failed' : '') + '.', _err ? 'warn' : 'success');
-        if (_err === 0)
-          showToast('Utilization: ' + _ok + ' blank record' + (_ok !== 1 ? 's' : '') + ' auto-patched in SharePoint.', 'success');
-        else
-          showToast('Utilization backfill: ' + _ok + ' patched, ' + _err + ' failed. Check log.', 'warning');
-      } catch(e) {
-        if (typeof addLog === 'function')
-          addLog('Utilization backfill skipped (auth): ' + (e.message||e), 'warn');
-      }
-    })(_utilNeedsPatch);
-  }
   splFiltered  = [...items];
   clFiltered   = items.filter(function(i){ return (((i.fields||{})['field_24']||'').trim().toLowerCase() !== 'excluded'); });
   splPage = 1;
@@ -22531,8 +22503,9 @@ function utilRepairInit() {
     var kpi   = (f['field_24'] || '').trim().toLowerCase();
     var util  = (f['field_25'] || '').trim();
     var kb    = parseInt(String(f['field_26'] || '').replace(/[^0-9]/g, '')) || 0;
-    var cases = parseInt(String(f['field_27'] || '').replace(/[^0-9]/g, '')) || 0;
-    return kpi === 'yes' && util === 'Yes' && kb === 0 && cases === 0;
+    // Catch any record with Utilization=Yes but no KB activity, regardless of CASE value.
+    // This covers both the old wizard mistake (CASE-only) and the v156 backfill over-write.
+    return kpi === 'yes' && util === 'Yes' && kb === 0;
   });
 
   if (_utilRepairList.length === 0) { card.style.display = 'none'; return; }

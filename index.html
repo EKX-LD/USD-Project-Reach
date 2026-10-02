@@ -10111,17 +10111,17 @@ async function splFetchItems(token) {
     localStorage.setItem('usd_splDataCache', JSON.stringify({ts:Date.now(), items:splAllItems}));
   } catch(e) {}
   raTaskDrawerRefreshIfOpen(); /* refresh task drawer if open */
-  /* ── In-memory compute: derive field_25 (Utilization) from KB when blank ──
-       Yes  → client has at least one KB entry  (KB is the sole utilization signal)
-       No   → KB is zero / blank
-       CASE alone does not determine Utilization.
+  /* ── In-memory compute: derive field_25 (Utilization) from KB + CASE when blank ──
+       Yes  → CASE > 0 OR KB > 0 (either activity signal is sufficient)
+       No   → both CASE and KB are zero / blank
        Display only — does NOT write back to SharePoint automatically. ── */
   splAllItems.forEach(function(it) {
     if (!it.fields) return;
     var _utl = String(it.fields['field_25']||'').trim();
     if (_utl) return;  /* already has a value — respect it */
-    var _kb = parseInt(String(it.fields['field_26']||'').replace(/[^0-9]/g,''))||0;
-    it.fields['field_25'] = (_kb > 0) ? 'Yes' : 'No';
+    var _kb   = parseInt(String(it.fields['field_26']||'').replace(/[^0-9]/g,''))||0;
+    var _case = parseInt(String(it.fields['field_27']||'').replace(/[^0-9]/g,''))||0;
+    it.fields['field_25'] = (_kb + _case > 0) ? 'Yes' : 'No';
   });
   splFiltered  = [...items];
   clFiltered   = items.filter(function(i){ return (((i.fields||{})['field_24']||'').trim().toLowerCase() !== 'excluded'); });
@@ -13670,10 +13670,11 @@ function raRenderTable() {
       var _isRO  = !!_roFields[col.f];
       var _tdCls = (_isRO ? 'ra-cell-readonly' : 'ra-cell-editable');
       if (_fzBase) _tdCls += ' ' + _fzBase;
-      /* ── Auto-compute: if Utilization(field_25) is blank, derive from KB only ── */
+      /* ── Auto-compute: if Utilization(field_25) is blank, derive from KB + CASE ── */
       if (col.f === 'field_25' && !raw.trim()) {
-        var _kbAuto = parseInt(String(f['field_26']||'').replace(/[^0-9]/g,''))||0;
-        disp = (_kbAuto > 0) ? 'Yes' : 'No';
+        var _kbAuto   = parseInt(String(f['field_26']||'').replace(/[^0-9]/g,''))||0;
+        var _caseAuto = parseInt(String(f['field_27']||'').replace(/[^0-9]/g,''))||0;
+        disp = (_kbAuto + _caseAuto > 0) ? 'Yes' : 'No';
       }
       /* ── Overall Notes — show [TAG] badge only; click cell/icon to expand full modal */
       if (col.f === 'field_37') {
@@ -14129,8 +14130,9 @@ async function raSaveInlineEdit(td, itemId, fieldKey, fieldType, value, original
       if (fieldKey === 'field_26' || fieldKey === 'field_27') {
         var _mem2 = splAllItems.find(function(x){ return String(x.id) === String(itemId); });
         if (_mem2 && _mem2.fields) {
-          var _kbC     = parseInt(String(_mem2.fields['field_26']||'').replace(/[^0-9]/g,''))||0;
-          var _utlAuto = (_kbC > 0) ? 'Yes' : 'No';  /* KB is the sole utilization signal */
+          var _kbC   = parseInt(String(_mem2.fields['field_26']||'').replace(/[^0-9]/g,''))||0;
+          var _caseC = parseInt(String(_mem2.fields['field_27']||'').replace(/[^0-9]/g,''))||0;
+          var _utlAuto = (_kbC + _caseC > 0) ? 'Yes' : 'No';
           var _utlCur  = String(_mem2.fields['field_25']||'').trim().toLowerCase();
           /* Only auto-write if Utilization is blank, 'no', or 'yes' (not a custom value) */
           if (!_utlCur || _utlCur === 'no' || _utlCur === 'yes') {
@@ -22481,7 +22483,7 @@ function utilRepairInit() {
     var kb    = parseInt(String(f['field_26'] || '').replace(/[^0-9]/g, '')) || 0;
     // Catch any record with Utilization=Yes but no KB activity, regardless of CASE value.
     // This covers both the old wizard mistake (CASE-only) and the v156 backfill over-write.
-    return kpi === 'yes' && util === 'Yes' && kb === 0;
+    return kpi === 'yes' && util === 'Yes' && kb === 0 && cases === 0;
   });
 
   if (_utilRepairList.length === 0) { card.style.display = 'none'; return; }
@@ -22559,7 +22561,8 @@ async function utilRepairExecute() {
       var _utl = String(it.fields['field_25'] || '').trim();
       if (_utl) return;
       var _kb   = parseInt(String(it.fields['field_26'] || '').replace(/[^0-9]/g, '')) || 0;
-      it.fields['field_25'] = (_kb > 0) ? 'Yes' : 'No';  /* KB is the sole utilization signal */
+      var _case = parseInt(String(it.fields['field_27'] || '').replace(/[^0-9]/g, '')) || 0;
+      it.fields['field_25'] = (_kb + _case > 0) ? 'Yes' : 'No';
     });
   }
   /* Refresh all affected UI components — no relaunch needed */

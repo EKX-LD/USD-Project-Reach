@@ -25773,6 +25773,124 @@ function smGetEmailHtml() {
     return '<div style="font-size:11px;font-weight:800;color:'+(clr||C.txBold)+';text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid '+(clr||C.border)+';opacity:.9;">'+text+'</div>';
   }
 
+  /* ── Vertical bar chart → Canvas PNG (Outlook-safe, mirrors dashboard) ── */
+  function _smBuildLineCanvas(rows, _c) {
+    try {
+      var S = 2; /* retina */
+      var W = 520, H = 170, PT = 32, PR = 16, PB = 32, PL = 42;
+      var cW = W - PL - PR, cH = H - PT - PB;
+      var maxY = 23;
+      var ALL_MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      var dataMap = {};
+      rows.filter(function(r){return r.successRate!==null;}).forEach(function(r){
+        dataMap[r.em.substring(0,3)] = r.successRate;
+      });
+      var data = ALL_MO.map(function(m){return{label:m,val:(dataMap[m]!==undefined?dataMap[m]:null)};});
+      var barGap = cW / 12;
+      var barW = Math.max(6, Math.floor(barGap * 0.52));
+      function xAt(i){ return PL + i*barGap + barGap/2; }
+      function yAt(v){ return PT + cH*(1 - v/maxY); }
+
+      var cv = document.createElement('canvas');
+      cv.width = W*S; cv.height = H*S;
+      var ctx = cv.getContext('2d');
+      ctx.scale(S, S);
+
+      /* white background */
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, W, H);
+
+      /* shaded regions: completed (green) Apr–Jun, ongoing (blue) Jul–Sep */
+      ctx.fillStyle = _c.green; ctx.globalAlpha = 0.08;
+      ctx.fillRect(PL + 3*barGap, PT, 3*barGap, cH);
+      ctx.fillStyle = _c.blue;
+      ctx.fillRect(PL + 6*barGap, PT, 3*barGap, cH);
+      ctx.globalAlpha = 1;
+
+      /* grid lines + y-axis labels */
+      ctx.textBaseline = 'middle';
+      [0,5,10,15,20,23].forEach(function(v){
+        var y = yAt(v);
+        ctx.strokeStyle = _c.gridLine; ctx.lineWidth = 1;
+        ctx.setLineDash([3,3]);
+        ctx.beginPath(); ctx.moveTo(PL, y); ctx.lineTo(W-PR, y); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = _c.axisLabel; ctx.font = '9px Arial,sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(v+'%', PL-4, y);
+      });
+
+      /* goal line at 20% */
+      ctx.strokeStyle = _c.green; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.6;
+      ctx.setLineDash([6,3]);
+      ctx.beginPath(); ctx.moveTo(PL, yAt(20)); ctx.lineTo(W-PR, yAt(20)); ctx.stroke();
+      ctx.setLineDash([]); ctx.globalAlpha = 1;
+
+      /* legend (top-right) */
+      var legX = W-PR-150, legY = 13;
+      /* completed: filled green circle + checkmark */
+      ctx.fillStyle = _c.green; ctx.globalAlpha = 0.9;
+      ctx.beginPath(); ctx.arc(legX, legY+3, 4.5, 0, Math.PI*2); ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.8; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      ctx.beginPath();
+      ctx.moveTo(legX-2.5, legY+3); ctx.lineTo(legX-0.5, legY+5.5); ctx.lineTo(legX+3, legY+0.5);
+      ctx.stroke();
+      ctx.fillStyle = _c.txSub; ctx.font = '8.5px Arial,sans-serif';
+      ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+      ctx.fillText('Completed', legX+9, legY+7);
+      /* ongoing: hollow blue circle with centre dot */
+      ctx.strokeStyle = _c.blue; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(legX+76, legY+3, 4.5, 0, Math.PI*2); ctx.stroke();
+      ctx.fillStyle = _c.blue;
+      ctx.beginPath(); ctx.arc(legX+76, legY+3, 1.8, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = _c.txSub; ctx.font = '8.5px Arial,sans-serif'; ctx.textAlign = 'left';
+      ctx.fillText('Ongoing', legX+85, legY+7);
+
+      /* bars + x-axis labels */
+      var labelY = H - PB + 14;
+      data.forEach(function(d, i){
+        var x = xAt(i);
+        ctx.fillStyle = _c.axisLabel; ctx.font = '9px Arial,sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+        ctx.fillText(d.label, x, labelY);
+        if (d.val === null) {
+          ctx.fillStyle = _c.barTrack; ctx.globalAlpha = 0.35;
+          ctx.fillRect(x - barW/2, H-PB-2, barW, 2);
+          ctx.globalAlpha = 1;
+        } else {
+          var dv = Math.min(d.val, maxY);
+          var yTop = yAt(dv), yBot = yAt(0);
+          var col = d.val>=20 ? _c.green : (d.val>=10 ? _c.amber : _c.red);
+          var bh = yBot-yTop, br = Math.min(2, bh/2);
+          ctx.fillStyle = col; ctx.globalAlpha = 0.85;
+          ctx.beginPath();
+          ctx.moveTo(x-barW/2+br, yTop);
+          ctx.lineTo(x+barW/2-br, yTop);
+          ctx.arcTo(x+barW/2, yTop, x+barW/2, yTop+br, br);
+          ctx.lineTo(x+barW/2, yBot);
+          ctx.lineTo(x-barW/2, yBot);
+          ctx.lineTo(x-barW/2, yTop+br);
+          ctx.arcTo(x-barW/2, yTop, x-barW/2+br, yTop, br);
+          ctx.closePath(); ctx.fill();
+          ctx.globalAlpha = 1;
+          ctx.fillStyle = col; ctx.font = '700 9px Arial,sans-serif';
+          ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+          ctx.fillText(d.val.toFixed(1)+'%', x, yTop-5);
+        }
+      });
+
+      /* caption */
+      ctx.fillStyle = _c.blue; ctx.font = 'italic 9px Arial,sans-serif';
+      ctx.textAlign = 'center'; ctx.globalAlpha = 0.65; ctx.textBaseline = 'alphabetic';
+      ctx.fillText('\u2193 Program started April 2026', W/2, H-7);
+      ctx.globalAlpha = 1;
+
+      cv._chartW = W; cv._chartH = H;
+      return cv;
+    } catch(e){ return null; }
+  }
+
   /* ── Trend table → Canvas PNG (572×variable px @2×) ── */
   function _smBuildTrendCanvas() {
     try {
@@ -25936,7 +26054,7 @@ function smGetEmailHtml() {
   /* ── Build email ── */
   var H = '<!DOCTYPE html><html><head><meta charset="UTF-8">'
     +'<style>body{margin:0;padding:0;background:#EAECEE;font-family:Arial,Helvetica,sans-serif;}'
-    +'img{display:block;max-width:100%;border:none;}</style></head><body>';
+    +'img{display:block;max-width:100%;border:none;}</style></head><body style="margin:0;padding:0;overflow:hidden;">';
 
   /* Outer wrapper */
   H += '<table width="100%" cellpadding="0" cellspacing="0" style="background:#EAECEE;padding:10px 0;">'
@@ -25982,17 +26100,16 @@ function smGetEmailHtml() {
     var _bd = _smLastBanner||[];
     var _kClrs=[C.blue,C.purple,C.green,C.red];
     var _kIconTypes=[['people',C.blue],['target',C.purple],['bars',C.green],['star',C.red]];
-    H += '<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid '+C.border+';border-radius:8px;overflow:hidden;">'
-      +'<tr>';
+    H += '<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid '+C.border+';border-radius:8px;overflow:hidden;">';
     _bd.forEach(function(b,i){
       var _ic = _kIconTypes[i] || _kIconTypes[0];
-      H+='<td style="padding:12px 8px;text-align:center;border-right:1px solid '+C.border+';">'
+      H+='<tr><td style="padding:12px 8px;text-align:center;border-bottom:1px solid '+C.border+';">'
         +'<div style="margin:0 auto 5px;width:20px;">'+_emailIconImg(_ic[0],_ic[1],20)+'</div>'
         +'<div style="font-size:22px;font-weight:800;color:'+(_kClrs[i]||C.blue)+';">'+fmtVal(b.val)+'</div>'
         +'<div style="font-size:13px;color:'+C.txSub+';margin-top:3px;line-height:1.3;">'+b.label+'</div>'
-        +'</td>';
+        +'</td></tr>';
     });
-    H += '</tr></table>';
+    H += '</table>';
   }
   H += '</div>';
 
@@ -26040,11 +26157,21 @@ function smGetEmailHtml() {
   /* ══ 4. Success Rate Trend ══ */
   H += '<div style="margin-bottom:14px;">';
   H += sLabel('Success Rate Trend', C.txBold);
-  /* Vertical bar chart SVG — identical to dashboard panel */
+  /* Canvas PNG first — Outlook Classic strips SVG so we must use an <img> */
   var _trendChronoRows = allRows.slice().sort(function(a,b){return a.sortVal-b.sortVal;});
-  H += '<div style="border:1px solid '+C.border+';border-radius:8px;background:#fff;padding:10px 8px 4px;">'
-    + _smLineChart(_trendChronoRows, C)
-    + '</div>';
+  var _lcv = _smBuildLineCanvas(_trendChronoRows, C);
+  if (_lcv) {
+    H += '<div style="border:1px solid '+C.border+';border-radius:8px;background:#fff;padding:8px 4px 6px;text-align:center;">'
+      +'<img src="'+_lcv.toDataURL('image/png')+'" width="'+_lcv._chartW+'" '
+      +'style="display:block;width:100%;max-width:'+_lcv._chartW+'px;height:auto;margin:0 auto;" '
+      +'alt="Success Rate Trend">'
+      +'</div>';
+  } else {
+    /* SVG fallback for non-Outlook clients if canvas unavailable */
+    H += '<div style="border:1px solid '+C.border+';border-radius:8px;background:#fff;padding:10px 8px 4px;">'
+      + _smLineChart(_trendChronoRows, C)
+      + '</div>';
+  }
   H += '</div>';
 
   /* ══ 5. Program Insights ══ */

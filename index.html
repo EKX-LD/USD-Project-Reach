@@ -22691,22 +22691,45 @@ async function rollbackScan() {
   if (confirmPnl) confirmPnl.style.display = 'none';
   if (donePnl)    donePnl.style.display    = 'none';
   if (scanBtn)    scanBtn.disabled = true;
-  if (statusEl)   statusEl.textContent = 'Scanning SharePoint for items modified after cutoff\u2026';
+  if (statusEl)   statusEl.textContent = 'Scanning for items modified after cutoff\u2026';
   _rbItems = [];
 
   try {
-    var cutoff = rollbackGetCutoffUTC();
-    var token  = await getAccessToken();
-    var url    = 'https://graph.microsoft.com/v1.0/sites/' + encodeURIComponent(splSiteId)
-               + '/lists/' + splListId
-               + '/items?$filter=lastModifiedDateTime gt \'' + cutoff + '\'&$select=id&$top=200';
+    var cutoff    = rollbackGetCutoffUTC();
+    var cutoffMS  = new Date(cutoff).getTime();
 
-    while (url) {
-      var r = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      var d = await r.json();
-      _rbItems = _rbItems.concat((d.value || []).map(function(i){ return i.id; }));
-      url = d['@odata.nextLink'] || null;
+    /* ── Step 1: try in-memory splAllItems first (instant, no API call) ── */
+    var _inMemMod = (splAllItems || []).some(function(it) {
+      return !!(it.fields || {})['Modified'];
+    });
+
+    if (_inMemMod) {
+      /* Use the Modified field already loaded in memory */
+      _rbItems = (splAllItems || []).filter(function(it) {
+        var mod = String((it.fields || {})['Modified'] || '');
+        return mod && new Date(mod).getTime() > cutoffMS;
+      }).map(function(it) { return String(it.id); });
+
+    } else {
+      /* ── Fallback: fetch all items from SP, filter client-side ──
+         NOTE: $filter on lastModifiedDateTime is NOT supported by Graph
+         for list items — fetch all with $select and filter locally.   ── */
+      var token = await getAccessToken();
+      var url   = 'https://graph.microsoft.com/v1.0/sites/' + encodeURIComponent(splSiteId)
+                + '/lists/' + splListId
+                + '/items?$select=id,lastModifiedDateTime&$top=200';
+
+      while (url) {
+        var r = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        var d = await r.json();
+        (d.value || []).forEach(function(item) {
+          if (new Date(item.lastModifiedDateTime).getTime() > cutoffMS) {
+            _rbItems.push(item.id);
+          }
+        });
+        url = d['@odata.nextLink'] || null;
+      }
     }
 
     if (!_rbItems.length) {

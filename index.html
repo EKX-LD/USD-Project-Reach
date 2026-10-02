@@ -4971,6 +4971,69 @@ body.dark-mode .ra-th-frozen,
     </div>
     <!-- /Data Repair Tool -->
 
+    <!-- ── SharePoint Version Rollback ──────────────────────────────────── -->
+    <div id="spRollbackCard" style="background:#eff6ff;border:1px solid #3b82f6;border-radius:10px;padding:14px 18px;margin-bottom:14px;">
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <div style="flex-shrink:0;padding-top:1px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 3v5h5" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:700;color:#1e40af;margin-bottom:3px;">SharePoint Data Rollback</div>
+          <div style="font-size:12px;color:#1d4ed8;line-height:1.5;margin-bottom:10px;">
+            Restores <strong>Utilization, KB, and CASE</strong> to their state before the cutoff time using SharePoint version history.
+            Use this to undo a corrupt Utilization Wizard run without reloading any files.
+          </div>
+
+          <!-- Cutoff input row -->
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+            <label style="font-size:12px;font-weight:600;color:#1e40af;white-space:nowrap;">Cutoff (Manila time):</label>
+            <input type="datetime-local" id="rbCutoffInput" value="2026-10-02T14:56"
+              style="font-size:12px;padding:4px 8px;border:1px solid #93c5fd;border-radius:5px;font-family:inherit;color:#1e3a8a;background:#fff;">
+            <button id="rbScanBtn" onclick="rollbackScan()"
+              style="padding:5px 14px;font-size:12px;font-weight:700;border:1px solid #3b82f6;border-radius:5px;background:#eff6ff;color:#1d4ed8;cursor:pointer;white-space:nowrap;">
+              Scan
+            </button>
+          </div>
+
+          <!-- Status line -->
+          <div id="rbStatus" style="font-size:12px;color:#1d4ed8;min-height:16px;margin-bottom:8px;"></div>
+
+          <!-- Confirm panel -->
+          <div id="rbConfirmPanel" style="display:none;padding:10px 14px;background:#dbeafe;border:1px solid #93c5fd;border-radius:6px;margin-bottom:8px;">
+            <div style="font-size:12px;color:#1e40af;margin-bottom:9px;line-height:1.5;">
+              Found <strong id="rbConfirmCount" style="color:#1d4ed8;"></strong> modified after the cutoff.
+              This will restore their <strong>Utilization, KB, and CASE</strong> values from SharePoint version history.
+              All months are covered — no files needed.
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button onclick="rollbackCancel()"
+                style="padding:5px 14px;font-size:12px;border:1px solid #3b82f6;border-radius:5px;background:#fff;color:#1e40af;cursor:pointer;font-weight:600;">
+                Cancel
+              </button>
+              <button id="rbConfirmBtn" onclick="rollbackExecute()"
+                style="padding:5px 14px;font-size:12px;border:none;border-radius:5px;background:#2563eb;color:#fff;cursor:pointer;font-weight:700;">
+                Restore Now
+              </button>
+            </div>
+          </div>
+
+          <!-- Progress bar -->
+          <div id="rbProgPanel" style="display:none;margin-bottom:8px;">
+            <div id="rbProgText" style="font-size:12px;color:#1e40af;margin-bottom:5px;"></div>
+            <div style="height:6px;background:#bfdbfe;border-radius:3px;overflow:hidden;">
+              <div id="rbProgFill" style="height:100%;background:#2563eb;width:0%;transition:width .25s ease;border-radius:3px;"></div>
+            </div>
+          </div>
+
+          <!-- Done message -->
+          <div id="rbDonePanel" style="display:none;padding:8px 12px;background:#d1fae5;border:1px solid #6ee7b7;border-radius:6px;">
+            <div id="rbDoneMsg" style="font-size:12px;font-weight:600;color:#065f46;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /SharePoint Version Rollback -->
+
     <!-- Stepper track -->
     <div class="wiz-track util-wiz-track">
       <div class="wiz-step util-wiz-step s-active" id="uNode1" onclick="utilStepClickNav(1)">
@@ -10133,17 +10196,17 @@ async function splFetchItems(token) {
     localStorage.setItem('usd_splDataCache', JSON.stringify({ts:Date.now(), items:splAllItems}));
   } catch(e) {}
   raTaskDrawerRefreshIfOpen(); /* refresh task drawer if open */
-  /* ── In-memory compute: derive field_25 (Utilization) from KB + CASE when blank ──
-       Yes  → client has at least one CASE or KB entry
-       No   → both CASE and KB are zero / blank
+  /* ── In-memory compute: derive field_25 (Utilization) from KB when blank ──
+       Yes  → client has at least one KB entry  (KB is the sole utilization signal)
+       No   → KB is zero / blank
+       CASE alone does not determine Utilization.
        Display only — does NOT write back to SharePoint automatically. ── */
   splAllItems.forEach(function(it) {
     if (!it.fields) return;
     var _utl = String(it.fields['field_25']||'').trim();
     if (_utl) return;  /* already has a value — respect it */
-    var _kb   = parseInt(String(it.fields['field_26']||'').replace(/[^0-9]/g,''))||0;
-    var _case = parseInt(String(it.fields['field_27']||'').replace(/[^0-9]/g,''))||0;
-    it.fields['field_25'] = (_kb + _case > 0) ? 'Yes' : 'No';
+    var _kb = parseInt(String(it.fields['field_26']||'').replace(/[^0-9]/g,''))||0;
+    it.fields['field_25'] = (_kb > 0) ? 'Yes' : 'No';
   });
   splFiltered  = [...items];
   clFiltered   = items.filter(function(i){ return (((i.fields||{})['field_24']||'').trim().toLowerCase() !== 'excluded'); });
@@ -13692,11 +13755,10 @@ function raRenderTable() {
       var _isRO  = !!_roFields[col.f];
       var _tdCls = (_isRO ? 'ra-cell-readonly' : 'ra-cell-editable');
       if (_fzBase) _tdCls += ' ' + _fzBase;
-      /* ── Auto-compute: if Utilization(field_25) is blank and KB+CASE = 0 → 'No' */
+      /* ── Auto-compute: if Utilization(field_25) is blank, derive from KB only ── */
       if (col.f === 'field_25' && !raw.trim()) {
-        var _kbAuto   = parseInt(String(f['field_26']||'').replace(/[^0-9]/g,''))||0;
-        var _caseAuto = parseInt(String(f['field_27']||'').replace(/[^0-9]/g,''))||0;
-        if (_kbAuto + _caseAuto === 0) { disp = 'No'; }
+        var _kbAuto = parseInt(String(f['field_26']||'').replace(/[^0-9]/g,''))||0;
+        disp = (_kbAuto > 0) ? 'Yes' : 'No';
       }
       /* ── Overall Notes — show [TAG] badge only; click cell/icon to expand full modal */
       if (col.f === 'field_37') {
@@ -14152,9 +14214,8 @@ async function raSaveInlineEdit(td, itemId, fieldKey, fieldType, value, original
       if (fieldKey === 'field_26' || fieldKey === 'field_27') {
         var _mem2 = splAllItems.find(function(x){ return String(x.id) === String(itemId); });
         if (_mem2 && _mem2.fields) {
-          var _kbC   = parseInt(String(_mem2.fields['field_26']||'').replace(/[^0-9]/g,''))||0;
-          var _caseC = parseInt(String(_mem2.fields['field_27']||'').replace(/[^0-9]/g,''))||0;
-          var _utlAuto = (_kbC + _caseC === 0) ? 'No' : 'Yes';
+          var _kbC     = parseInt(String(_mem2.fields['field_26']||'').replace(/[^0-9]/g,''))||0;
+          var _utlAuto = (_kbC > 0) ? 'Yes' : 'No';  /* KB is the sole utilization signal */
           var _utlCur  = String(_mem2.fields['field_25']||'').trim().toLowerCase();
           /* Only auto-write if Utilization is blank, 'no', or 'yes' (not a custom value) */
           if (!_utlCur || _utlCur === 'no' || _utlCur === 'yes') {
@@ -22573,9 +22634,23 @@ async function utilRepairExecute() {
   if (donePanel) donePanel.style.display = '';
   var msg = '✓ ' + cleared + ' record' + (cleared !== 1 ? 's' : '') + ' cleared.';
   if (errs > 0) msg += ' ' + errs + ' error' + (errs !== 1 ? 's' : '') + '.';
-  msg += ' Run the Utilization Wizard to re-apply utilization data.';
   if (doneMsg) doneMsg.textContent = msg;
   _utilRepairList = [];
+
+  /* Re-derive Utilization in-memory for all cleared records so tables update immediately */
+  if (splAllItems) {
+    splAllItems.forEach(function(it) {
+      if (!it.fields) return;
+      var _utl = String(it.fields['field_25'] || '').trim();
+      if (_utl) return;
+      var _kb   = parseInt(String(it.fields['field_26'] || '').replace(/[^0-9]/g, '')) || 0;
+      it.fields['field_25'] = (_kb > 0) ? 'Yes' : 'No';  /* KB is the sole utilization signal */
+    });
+  }
+  /* Refresh all affected UI components — no relaunch needed */
+  if (typeof raApplyFilters   === 'function') raApplyFilters();
+  if (typeof splRenderTable   === 'function') splRenderTable();
+  if (typeof clApplyFilters   === 'function') clApplyFilters();
   var _smPU = document.getElementById('panel-successmeasure');
   if (typeof smBuildDashboard === 'function' && _smPU && _smPU.classList.contains('active')) smBuildDashboard();
 }
@@ -22591,6 +22666,181 @@ async function utilPatchSpItem(itemId, fields, token) {
     throw new Error(e.error ? e.error.message : 'HTTP ' + resp.status);
   }
   return true;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SharePoint Version History Rollback
+   Restores field_25 (Utilization), field_26 (KB), field_27 (CASE) to their
+   state at/before the cutoff datetime for all items modified after it.
+   Cutoff is entered in Manila time (UTC+8) and auto-converted to UTC.
+   ═══════════════════════════════════════════════════════════════════════════ */
+var _rbItems   = [];
+var _rbRunning = false;
+
+function rollbackGetCutoffUTC() {
+  var v = ((document.getElementById('rbCutoffInput') || {}).value || '2026-10-02T14:56');
+  /* Append seconds and Manila offset so Date parses it as UTC+8 */
+  return new Date(v + ':00+08:00').toISOString();
+}
+
+async function rollbackScan() {
+  var scanBtn    = document.getElementById('rbScanBtn');
+  var statusEl   = document.getElementById('rbStatus');
+  var confirmPnl = document.getElementById('rbConfirmPanel');
+  var donePnl    = document.getElementById('rbDonePanel');
+  if (confirmPnl) confirmPnl.style.display = 'none';
+  if (donePnl)    donePnl.style.display    = 'none';
+  if (scanBtn)    scanBtn.disabled = true;
+  if (statusEl)   statusEl.textContent = 'Scanning SharePoint for items modified after cutoff\u2026';
+  _rbItems = [];
+
+  try {
+    var cutoff = rollbackGetCutoffUTC();
+    var token  = await getAccessToken();
+    var url    = 'https://graph.microsoft.com/v1.0/sites/' + encodeURIComponent(splSiteId)
+               + '/lists/' + splListId
+               + '/items?$filter=lastModifiedDateTime gt \'' + cutoff + '\'&$select=id&$top=200';
+
+    while (url) {
+      var r = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      var d = await r.json();
+      _rbItems = _rbItems.concat((d.value || []).map(function(i){ return i.id; }));
+      url = d['@odata.nextLink'] || null;
+    }
+
+    if (!_rbItems.length) {
+      if (statusEl) statusEl.textContent = 'No items found modified after the cutoff. Data may already be correct.';
+    } else {
+      if (statusEl) statusEl.textContent = _rbItems.length + ' item' + (_rbItems.length !== 1 ? 's' : '') + ' modified after the cutoff — ready to restore.';
+      var cntEl = document.getElementById('rbConfirmCount');
+      if (cntEl)    cntEl.textContent = _rbItems.length + ' item' + (_rbItems.length !== 1 ? 's' : '');
+      if (confirmPnl) confirmPnl.style.display = '';
+    }
+  } catch(e) {
+    if (statusEl) statusEl.textContent = 'Scan error: ' + (e.message || e);
+  }
+  if (scanBtn) scanBtn.disabled = false;
+}
+
+function rollbackCancel() {
+  _rbItems = [];
+  var confirmPnl = document.getElementById('rbConfirmPanel');
+  var statusEl   = document.getElementById('rbStatus');
+  if (confirmPnl) confirmPnl.style.display = 'none';
+  if (statusEl)   statusEl.textContent = 'Cancelled.';
+}
+
+async function rollbackExecute() {
+  if (_rbRunning || !_rbItems.length) return;
+  _rbRunning = true;
+
+  var confirmPnl = document.getElementById('rbConfirmPanel');
+  var progPanel  = document.getElementById('rbProgPanel');
+  var progText   = document.getElementById('rbProgText');
+  var progFill   = document.getElementById('rbProgFill');
+  var donePanel  = document.getElementById('rbDonePanel');
+  var doneMsg    = document.getElementById('rbDoneMsg');
+  var statusEl   = document.getElementById('rbStatus');
+  var scanBtn    = document.getElementById('rbScanBtn');
+  var confirmBtn = document.getElementById('rbConfirmBtn');
+
+  if (confirmPnl) confirmPnl.style.display = 'none';
+  if (progPanel)  progPanel.style.display  = '';
+  if (scanBtn)    scanBtn.disabled   = true;
+  if (confirmBtn) confirmBtn.disabled = true;
+
+  var cutoffMS = new Date(rollbackGetCutoffUTC()).getTime();
+  var total = _rbItems.length, ok = 0, skipped = 0, errs = 0;
+
+  try {
+    var token = await getAccessToken();
+
+    for (var i = 0; i < total; i++) {
+      var itemId = _rbItems[i];
+      if (progFill) progFill.style.width = Math.round((i + 1) / total * 100) + '%';
+      if (progText) progText.textContent = (i + 1) + ' of ' + total + ' \u2014 ' + ok + ' restored so far\u2026';
+
+      try {
+        /* Get full version history with field values */
+        var vr = await fetch(
+          'https://graph.microsoft.com/v1.0/sites/' + encodeURIComponent(splSiteId)
+          + '/lists/' + splListId + '/items/' + itemId
+          + '/versions?$expand=fields&$top=100',
+          { headers: { 'Authorization': 'Bearer ' + token } }
+        );
+        if (!vr.ok) { errs++; continue; }
+        var vd = await vr.json();
+
+        /* Find the newest version at or before the cutoff */
+        var before = (vd.value || []).filter(function(v) {
+          return new Date(v.lastModifiedDateTime).getTime() <= cutoffMS;
+        });
+        if (!before.length) { skipped++; continue; } /* created after cutoff */
+
+        before.sort(function(a, b) {
+          return new Date(b.lastModifiedDateTime) - new Date(a.lastModifiedDateTime);
+        });
+        var vf = before[0].fields || {};
+
+        /* Build patch — restore all three fields */
+        var patch = {};
+        if (vf['field_25'] !== undefined) patch['field_25'] = vf['field_25'];
+        if (vf['field_26'] !== undefined) patch['field_26'] = vf['field_26'];
+        if (vf['field_27'] !== undefined) patch['field_27'] = vf['field_27'];
+        if (!Object.keys(patch).length)  { skipped++; continue; }
+
+        await utilPatchSpItem(itemId, patch, token);
+
+        /* Update in-memory record */
+        var mem = (splAllItems || []).find(function(x){ return String(x.id) === String(itemId); });
+        if (mem && mem.fields) {
+          if (patch['field_25'] !== undefined) mem.fields['field_25'] = String(patch['field_25'] || '');
+          if (patch['field_26'] !== undefined) mem.fields['field_26'] = String(patch['field_26'] || '');
+          if (patch['field_27'] !== undefined) mem.fields['field_27'] = String(patch['field_27'] || '');
+          /* Re-derive if Utilization is still blank after restore */
+          if (!String(mem.fields['field_25'] || '').trim()) {
+            var _kbR = parseInt(String(mem.fields['field_26']||'').replace(/[^0-9]/g,''))||0;
+            mem.fields['field_25'] = (_kbR > 0) ? 'Yes' : 'No';
+          }
+        }
+        ok++;
+
+      } catch(itemErr) { errs++; }
+
+      /* Rate-limit: pause every 8 items to avoid Graph throttling */
+      if ((i + 1) % 8 === 0) await new Promise(function(r){ setTimeout(r, 400); });
+    }
+
+  } catch(authErr) {
+    if (progPanel) progPanel.style.display = 'none';
+    if (statusEl)  statusEl.textContent = 'Auth error \u2014 ' + (authErr.message || 'please sign in and try again');
+    _rbRunning = false;
+    if (scanBtn)   scanBtn.disabled   = false;
+    if (confirmBtn) confirmBtn.disabled = false;
+    return;
+  }
+
+  /* ── Finish ── */
+  if (progPanel)  progPanel.style.display  = 'none';
+  if (donePanel)  donePanel.style.display  = '';
+  if (statusEl)   statusEl.textContent = '';
+  var msg = '\u2713 Restored: ' + ok
+    + (skipped ? '  \u00b7  No prior version (skipped): ' + skipped : '')
+    + (errs    ? '  \u00b7  Errors: ' + errs : '');
+  if (doneMsg) doneMsg.textContent = msg;
+  if (typeof addLog === 'function') addLog('SP Rollback: ' + msg, errs ? 'warn' : 'success');
+
+  _rbItems   = [];
+  _rbRunning = false;
+  if (scanBtn) scanBtn.disabled = false;
+
+  /* Refresh all UI components immediately */
+  if (typeof raApplyFilters === 'function') raApplyFilters();
+  if (typeof splRenderTable === 'function') splRenderTable();
+  if (typeof clApplyFilters === 'function') clApplyFilters();
+  var _smP = document.getElementById('panel-successmeasure');
+  if (typeof smBuildDashboard === 'function' && _smP && _smP.classList.contains('active')) smBuildDashboard();
 }
 
 /* ── Process Files ───────────────────────────────────────────────────────── */

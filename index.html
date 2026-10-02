@@ -22691,51 +22691,39 @@ async function rollbackScan() {
   if (confirmPnl) confirmPnl.style.display = 'none';
   if (donePnl)    donePnl.style.display    = 'none';
   if (scanBtn)    scanBtn.disabled = true;
-  if (statusEl)   statusEl.textContent = 'Scanning for items modified after cutoff\u2026';
+  if (statusEl)   statusEl.textContent = 'Scanning SharePoint for items modified after cutoff\u2026';
   _rbItems = [];
 
   try {
-    var cutoff    = rollbackGetCutoffUTC();
-    var cutoffMS  = new Date(cutoff).getTime();
+    var cutoff   = rollbackGetCutoffUTC();
+    var cutoffMS = new Date(cutoff).getTime();
+    var token    = await getAccessToken();
 
-    /* ── Step 1: try in-memory splAllItems first (instant, no API call) ── */
-    var _inMemMod = (splAllItems || []).some(function(it) {
-      return !!(it.fields || {})['Modified'];
-    });
+    /* Always fetch fresh lastModifiedDateTime directly from SharePoint.
+       In-memory timestamps can be stale if SP was modified after the last
+       page load — that would cause the scan to miss corrupted records.
+       NOTE: $filter on lastModifiedDateTime is unsupported for list items;
+       fetch all with $select and filter client-side instead.             */
+    var url = 'https://graph.microsoft.com/v1.0/sites/' + encodeURIComponent(splSiteId)
+            + '/lists/' + splListId
+            + '/items?$select=id,lastModifiedDateTime&$top=200';
 
-    if (_inMemMod) {
-      /* Use the Modified field already loaded in memory */
-      _rbItems = (splAllItems || []).filter(function(it) {
-        var mod = String((it.fields || {})['Modified'] || '');
-        return mod && new Date(mod).getTime() > cutoffMS;
-      }).map(function(it) { return String(it.id); });
-
-    } else {
-      /* ── Fallback: fetch all items from SP, filter client-side ──
-         NOTE: $filter on lastModifiedDateTime is NOT supported by Graph
-         for list items — fetch all with $select and filter locally.   ── */
-      var token = await getAccessToken();
-      var url   = 'https://graph.microsoft.com/v1.0/sites/' + encodeURIComponent(splSiteId)
-                + '/lists/' + splListId
-                + '/items?$select=id,lastModifiedDateTime&$top=200';
-
-      while (url) {
-        var r = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        var d = await r.json();
-        (d.value || []).forEach(function(item) {
-          if (new Date(item.lastModifiedDateTime).getTime() > cutoffMS) {
-            _rbItems.push(item.id);
-          }
-        });
-        url = d['@odata.nextLink'] || null;
-      }
+    while (url) {
+      var r = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      var d = await r.json();
+      (d.value || []).forEach(function(item) {
+        if (new Date(item.lastModifiedDateTime).getTime() > cutoffMS) {
+          _rbItems.push(item.id);
+        }
+      });
+      url = d['@odata.nextLink'] || null;
     }
 
     if (!_rbItems.length) {
-      if (statusEl) statusEl.textContent = 'No items found modified after the cutoff. Data may already be correct.';
+      if (statusEl) statusEl.textContent = 'No items found modified after the cutoff. Data is already correct.';
     } else {
-      if (statusEl) statusEl.textContent = _rbItems.length + ' item' + (_rbItems.length !== 1 ? 's' : '') + ' modified after the cutoff — ready to restore.';
+      if (statusEl) statusEl.textContent = _rbItems.length + ' item' + (_rbItems.length !== 1 ? 's' : '') + ' modified after cutoff — ready to restore.';
       var cntEl = document.getElementById('rbConfirmCount');
       if (cntEl)    cntEl.textContent = _rbItems.length + ' item' + (_rbItems.length !== 1 ? 's' : '');
       if (confirmPnl) confirmPnl.style.display = '';

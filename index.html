@@ -5696,11 +5696,6 @@ body.dark-mode .ra-th-frozen,
             <!-- Year -->
             <select class="clf-input clf-input-sm clf-year-inline" id="clf-enrollyyyy" onchange="clApplyFilters()">
               <option value="">All Years</option>
-              <option value="2024">2024</option>
-              <option value="2025">2025</option>
-              <option value="2026" selected="">2026</option>
-              <option value="2027">2027</option>
-              <option value="2028">2028</option>
             </select>
             <!-- Reset -->
             <button class="ra-sidebar-reset-btn" onclick="clResetFilters()" title="Reset all filters">Reset</button>
@@ -9676,6 +9671,29 @@ function clGetActiveCols() {
 }
 function clCols() { return clGetActiveCols(); }
 
+/* ── Populate year dropdown from live data ──────────────────────────────── */
+function clPopulateYearDropdown() {
+  var sel = document.getElementById('clf-enrollyyyy');
+  if (!sel || !splAllItems || !splAllItems.length) return;
+  var currentYear = String(new Date().getFullYear());
+  /* Collect unique years present in the data */
+  var yearsSet = {};
+  splAllItems.forEach(function(item) {
+    var y = String((item.fields || {})['EnrollmentYYYY'] || '').trim();
+    if (y && /^\d{4}$/.test(y)) yearsSet[y] = true;
+  });
+  var years = Object.keys(yearsSet).sort();
+  /* Rebuild options: keep "All Years" first, then data years */
+  sel.innerHTML = '<option value="">All Years</option>';
+  years.forEach(function(y) {
+    var opt = document.createElement('option');
+    opt.value = y;
+    opt.textContent = y;
+    if (y === currentYear) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
 function clApplyFilters() {
   var terms = {};
   Object.keys(CL_FILTER_MAP).forEach(function(id) {
@@ -10331,7 +10349,7 @@ async function splRefresh() {
     splBtns(true);
     splSetStatus('success', 'Refreshed — ' + splAllItems.length + ' record(s).');
     setTimeout(() => splSetStatus('', ''), 3000);
-    clFiltered = splAllItems.filter(function(i){ return (((i.fields||{})['field_24']||'').trim().toLowerCase() !== 'excluded'); }); clRenderTable();
+    clFiltered = splAllItems.filter(function(i){ return (((i.fields||{})['field_24']||'').trim().toLowerCase() !== 'excluded'); }); clPopulateYearDropdown(); clRenderTable();
     var clBadgeEl = document.getElementById('clBadge');
     if (clBadgeEl) { clBadgeEl.textContent = splAllItems.length; clBadgeEl.style.display = splAllItems.length ? '' : 'none'; }
     // Refresh overview client count and pipeline after SP data loads

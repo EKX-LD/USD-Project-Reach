@@ -6248,10 +6248,10 @@ nrosati@jparks.com - No longer in the ro…</span><span class="notes-icon-btn" t
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5z" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </div>
             <div style="flex:1;min-width:0;">
-              <div style="font-size:14px;font-weight:700;color:#14532d;margin-bottom:3px;">Bulk SP Restore from REACH List CSV</div>
+              <div style="font-size:14px;font-weight:700;color:#14532d;margin-bottom:3px;">Bulk Case Count Update from Cases CSV</div>
               <div style="font-size:12px;color:#166534;line-height:1.5;margin-bottom:12px;">
-                Upload a REACH Client List CSV export. The tool reads the <strong>CASE</strong> and <strong>KB</strong> columns, matches each row to the SharePoint list by account name, and writes the values back in bulk — no one-by-one editing needed.
-                Utilization is re-derived: <strong>Yes</strong> if CASE &gt; 0 or KB &gt; 0, <strong>No</strong> otherwise.
+                Upload a <strong>Salesforce Cases CSV</strong> (e.g. Jul–Sep Cases report). The tool computes the actual case count for each SP client using their individual enrollment window — same logic as the wizard. Only clients who have <strong>at least 1 case in the file</strong> are updated; clients with no match are <strong>skipped and preserved</strong> (no wiping).
+                Utilization is re-derived: <strong>Yes</strong> if new CASE &gt; 0 or existing KB &gt; 0.
               </div>
 
               <!-- Upload zone -->
@@ -6262,7 +6262,7 @@ nrosati@jparks.com - No longer in the ro…</span><span class="notes-icon-btn" t
                    ondrop="event.preventDefault();this.style.borderColor='#86efac';csvRestoreLoad(event.dataTransfer.files[0]);">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="margin-bottom:6px;color:#16a34a;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="#16a34a" stroke-width="2" stroke-linecap="round"/><polyline points="17 8 12 3 7 8" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="3" x2="12" y2="15" stroke="#16a34a" stroke-width="2" stroke-linecap="round"/></svg>
                 <div style="font-size:12px;color:#166534;font-weight:600;">Click or drag &amp; drop a REACH List CSV</div>
-                <div style="font-size:11px;color:#4ade80;margin-top:3px;">Exports from SharePoint Client List or the Adoption Journey wizard</div>
+                <div style="font-size:11px;color:#4ade80;margin-top:3px;">Salesforce Cases export — columns needed: Account Name, Case Number, Opened Date</div>
               </div>
               <input type="file" id="csvr-file-input" accept=".csv" style="display:none;" onchange="csvRestoreLoad(this.files[0])">
 
@@ -6271,7 +6271,7 @@ nrosati@jparks.com - No longer in the ro…</span><span class="notes-icon-btn" t
                 <div style="font-size:12px;color:#14532d;margin-bottom:8px;line-height:1.5;" id="csvr-preview-msg"></div>
                 <div style="max-height:180px;overflow-y:auto;border:1px solid #bbf7d0;border-radius:4px;background:#fff;">
                   <table style="width:100%;border-collapse:collapse;font-size:11px;">
-                    <thead><tr style="background:#f0fdf4;"><th style="padding:4px 8px;text-align:left;color:#166534;border-bottom:1px solid #bbf7d0;">Account Name</th><th style="padding:4px 8px;text-align:center;color:#166534;border-bottom:1px solid #bbf7d0;">CASE</th><th style="padding:4px 8px;text-align:center;color:#166534;border-bottom:1px solid #bbf7d0;">KB</th><th style="padding:4px 8px;text-align:center;color:#166534;border-bottom:1px solid #bbf7d0;">New Util</th><th style="padding:4px 8px;text-align:center;color:#166534;border-bottom:1px solid #bbf7d0;">Status</th></tr></thead>
+                    <thead><tr style="background:#f0fdf4;"><th style="padding:4px 8px;text-align:left;color:#166534;border-bottom:1px solid #bbf7d0;">Account Name</th><th style="padding:4px 8px;text-align:center;color:#166534;border-bottom:1px solid #bbf7d0;">Cases Found</th><th style="padding:4px 8px;text-align:center;color:#166534;border-bottom:1px solid #bbf7d0;">Existing KB</th><th style="padding:4px 8px;text-align:center;color:#166534;border-bottom:1px solid #bbf7d0;">New Util</th><th style="padding:4px 8px;text-align:center;color:#166534;border-bottom:1px solid #bbf7d0;">Window</th></tr></thead>
                     <tbody id="csvr-preview-tbody"></tbody>
                   </table>
                 </div>
@@ -27816,83 +27816,124 @@ var _csvrRows = [];   /* parsed & matched rows ready to write */
 
 function csvRestoreLoad(file) {
   if (!file) return;
+  if (!splAllItems || !splAllItems.length) {
+    document.getElementById('csvr-status').textContent = 'Load SharePoint data first (click Refresh on the Client List tab).';
+    return;
+  }
   var reader = new FileReader();
   reader.onload = function(e) {
     var text = e.target.result;
-    /* Strip BOM if present */
     if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
-    /* Parse CSV */
-    var rows = parseCSV(text);   /* reuse the existing wizard CSV parser */
+    var rows = parseCSV(text);
     if (!rows || !rows.length) {
-      document.getElementById('csvr-status').textContent = 'Could not parse file — make sure it is a valid CSV.';
+      document.getElementById('csvr-status').textContent = 'Could not parse file — ensure it is a valid CSV.';
       return;
     }
-    /* Find column names (case-insensitive) */
+
+    /* ── Helper: find a column value by candidate names ── */
     function getCol(row, candidates) {
       for (var k in row) {
-        var kl = k.trim().toLowerCase();
+        var kl = k.trim().toLowerCase().replace(/[^a-z0-9]/g,'');
         for (var ci = 0; ci < candidates.length; ci++) {
-          if (kl === candidates[ci].toLowerCase()) return (row[k] || '').toString().trim();
+          if (kl === candidates[ci]) return (row[k] || '').toString().trim();
         }
       }
       return '';
     }
-    /* Build matched rows */
-    _csvrRows = [];
-    var skipped = 0;
+
+    /* ── Index cases by account name (lower) ── */
+    var casesByName = {};
     rows.forEach(function(row) {
-      var acct = getCol(row, ['Account: Account Name','Account Name','Title','AccountName']);
-      if (!acct) { skipped++; return; }
-      var caseVal = getCol(row, ['CASE','Case Count','field_27']);
-      var kbVal   = getCol(row, ['KB','KB Count','field_26']);
-      var caseN   = parseInt(caseVal.replace(/[^0-9]/g,'')) || 0;
-      var kbN     = parseInt(kbVal.replace(/[^0-9]/g,''))   || 0;
-      /* Only include rows that have at least one data point */
-      if (caseVal === '' && kbVal === '') { skipped++; return; }
-      /* Find matching SP item */
-      var spItem = null;
-      var acctLow = acct.toLowerCase();
-      if (splAllItems && splAllItems.length) {
-        for (var si = 0; si < splAllItems.length; si++) {
-          var f = splAllItems[si].fields || {};
-          var spName = (f['Title'] || '').trim().toLowerCase();
-          if (spName === acctLow) { spItem = splAllItems[si]; break; }
-        }
-      }
+      var acct = getCol(row, ['accountname','accountaccountname','title']).toLowerCase();
+      var dateStr = getCol(row, ['openeddate','datetimeopened','caseopendate','opendate','openeddate']);
+      if (!acct) return;
+      if (!casesByName[acct]) casesByName[acct] = [];
+      casesByName[acct].push({ dateStr: dateStr });
+    });
+
+    var totalCaseRows = rows.length;
+    var uniqueAccts   = Object.keys(casesByName).length;
+
+    /* ── For each SP client: compute case count within their enrollment window ── */
+    _csvrRows = [];
+    var LD_M = ['January','February','March','April','May','June',
+                'July','August','September','October','November','December'];
+
+    splAllItems.forEach(function(item) {
+      var f     = item.fields || {};
+      var name  = (f['Title'] || '').trim();
+      var em    = (f['MMMEnrollment']  || '').trim();
+      var ey    = String(f['EnrollmentYYYY'] || '').trim();
+      if (!name || !em || !ey) return;
+
+      var nameLow = name.toLowerCase();
+      var casesForClient = casesByName[nameLow];
+      if (!casesForClient) return;   /* NOT in file — SKIP, preserve existing value */
+
+      /* Compute enrollment window (same logic as wizard) */
+      var enrollIdx = LD_M.indexOf(em);
+      if (enrollIdx < 0) return;
+      var startY    = parseInt(ey, 10);
+      var endIdx    = enrollIdx + 2;
+      var endMIdx   = endIdx % 12;
+      var endY      = startY + Math.floor(endIdx / 12);
+      var winStart  = new Date(startY, enrollIdx, 1);
+      var winEnd    = new Date(endY, endMIdx + 1, 0, 23, 59, 59, 999);
+
+      /* Count cases within window */
+      var cCount = 0;
+      casesForClient.forEach(function(c) {
+        if (!c.dateStr) { cCount++; return; } /* no date → count (fail-open) */
+        var d = new Date(c.dateStr);
+        if (isNaN(d)) { cCount++; return; }   /* unparseable → count */
+        if (d >= winStart && d <= winEnd) cCount++;
+      });
+
+      if (cCount === 0) return;  /* found in file but 0 cases in window — skip, preserve */
+
+      /* Existing KB from SP (preserved — not touched) */
+      var existKb = parseInt(String(f['field_26'] || '').replace(/[^0-9]/g,'')) || 0;
+      var newUtil = (cCount + existKb > 0) ? 'Yes' : 'No';
+
       _csvrRows.push({
-        name:   acct,
-        caseN:  caseN,
-        kbN:    kbN,
-        newUtil: (caseN + kbN > 0) ? 'Yes' : 'No',
-        spItem: spItem,
-        matched: !!spItem
+        name:    name,
+        caseN:   cCount,
+        kbN:     existKb,
+        newUtil: newUtil,
+        window:  LD_M[enrollIdx] + ' ' + ey + ' → ' + LD_M[endMIdx] + ' ' + endY,
+        spItem:  item
       });
     });
-    var matched   = _csvrRows.filter(function(r){ return r.matched; });
-    var unmatched = _csvrRows.filter(function(r){ return !r.matched; });
-    /* Show preview */
-    var msg = '<strong>' + matched.length + ' records matched</strong> in SharePoint and ready to write. ' +
-              (unmatched.length ? '<span style="color:#b45309;">' + unmatched.length + ' not found in SP (account name mismatch).</span>' : '') +
-              (skipped ? ' ' + skipped + ' rows skipped (no CASE/KB data).' : '');
+
+    if (!_csvrRows.length) {
+      document.getElementById('csvr-status').textContent =
+        'No SP clients matched cases in their enrollment window. Check that the file contains the right date range.';
+      return;
+    }
+
+    /* ── Preview ── */
+    var msg = '<strong>' + _csvrRows.length + ' clients</strong> have cases in their enrollment window and will be updated. ' +
+              'Clients not in the file or with 0 matching cases are <strong>preserved</strong>. ' +
+              '(File: ' + totalCaseRows.toLocaleString() + ' rows, ' + uniqueAccts.toLocaleString() + ' unique accounts)';
     document.getElementById('csvr-preview-msg').innerHTML = msg;
+
     var tbody = document.getElementById('csvr-preview-tbody');
     tbody.innerHTML = '';
-    _csvrRows.slice(0, 200).forEach(function(r) {
+    _csvrRows.slice(0, 300).forEach(function(r) {
       var tr = document.createElement('tr');
-      var statusHtml = r.matched
-        ? '<span style="color:#15803d;font-weight:700;">&#10003; matched</span>'
-        : '<span style="color:#b45309;">&#9888; not found</span>';
-      tr.innerHTML = '<td style="padding:3px 8px;border-bottom:1px solid #f0fdf4;">' + escHtml(r.name) + '</td>'
-        + '<td style="padding:3px 8px;text-align:center;border-bottom:1px solid #f0fdf4;">' + r.caseN + '</td>'
+      tr.innerHTML =
+        '<td style="padding:3px 8px;border-bottom:1px solid #f0fdf4;">' + escHtml(r.name) + '</td>'
+        + '<td style="padding:3px 8px;text-align:center;border-bottom:1px solid #f0fdf4;font-weight:700;color:#15803d;">' + r.caseN + '</td>'
         + '<td style="padding:3px 8px;text-align:center;border-bottom:1px solid #f0fdf4;">' + r.kbN + '</td>'
         + '<td style="padding:3px 8px;text-align:center;border-bottom:1px solid #f0fdf4;color:' + (r.newUtil==='Yes'?'#15803d':'#dc2626') + ';font-weight:700;">' + r.newUtil + '</td>'
-        + '<td style="padding:3px 8px;text-align:center;border-bottom:1px solid #f0fdf4;">' + statusHtml + '</td>';
+        + '<td style="padding:3px 8px;font-size:10px;color:#64748b;border-bottom:1px solid #f0fdf4;">' + escHtml(r.window) + '</td>';
       tbody.appendChild(tr);
     });
+
     document.getElementById('csvr-upload-zone').style.display = 'none';
-    document.getElementById('csvr-preview').style.display = '';
-    document.getElementById('csvr-confirm-btn').disabled = (matched.length === 0);
-    document.getElementById('csvr-status').textContent = '';
+    document.getElementById('csvr-preview').style.display     = '';
+    document.getElementById('csvr-confirm-btn').disabled      = false;
+    document.getElementById('csvr-status').textContent        = '';
   };
   reader.readAsText(file, 'latin1');
 }
@@ -27929,9 +27970,10 @@ async function csvRestoreExecute() {
     var CONC  = 5;
     async function _runBatchR(items) {
       await Promise.all(items.map(async function(r) {
+        /* Write CASE count (computed from file) + re-derived Utilization.
+           KB is NOT written — it is preserved as-is in SP. */
         var patch = {
           'field_27': String(r.caseN),
-          'field_26': String(r.kbN),
           'field_25': r.newUtil
         };
         try {

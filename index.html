@@ -1902,6 +1902,8 @@ body.dark-mode .ra-th-frozen,
     .util-done-chip{display:flex;flex-direction:column;gap:3px;padding:12px 14px;border-radius:7px;background:var(--sap-bg);border:1px solid var(--sap-light-gray);}
     .util-done-chip-val{font-size:26px;font-weight:800;line-height:1;letter-spacing:-.5px;}
     .util-done-chip-label{font-size:11.5px;color:var(--sap-dark-gray);font-weight:500;}
+    .util-done-chip-sub{display:block;font-size:10px;color:#6b7280;margin-top:4px;line-height:1.4;font-weight:400;}
+    .util-done-chip.has-sub{grid-column:1 / -1;}
     .util-done-chip.green .util-done-chip-val{color:#16a34a;}
     .util-done-chip.blue  .util-done-chip-val{color:#0070F2;}
     .util-done-chip.amber .util-done-chip-val{color:#d97706;}
@@ -22838,19 +22840,28 @@ function utilShowDone(stats) {
   if (sub)   sub.textContent = hasErr
     ? 'SharePoint was updated but some records encountered errors. See Activity Log for details.'
     : 'SharePoint REACH Client List has been updated successfully.';
+  /* Helper: build month sub-label from a {month: count} map */
+  function _monthBreakdown(map) {
+    if (!map) return '';
+    var entries = Object.keys(map).sort();
+    if (!entries.length) return '';
+    return entries.map(function(k){ return k + ': <strong>' + map[k] + '</strong>'; }).join(' &nbsp;|&nbsp; ');
+  }
   var chips = [
-    { val: stats.total,   label: 'Records Evaluated',    cls: 'gray'  },
-    { val: stats.newUtil, label: 'New Utilization = Yes', cls: 'green' },
-    { val: stats.cases,   label: 'Case Counts Written',   cls: 'blue'  },
-    { val: stats.kb,      label: 'KB Counts Written',     cls: 'blue'  },
-    { val: stats.removed, label: 'Removed / Deactivated', cls: 'amber' },
+    { val: stats.total,   label: 'Records Evaluated',    cls: 'gray',  sub: null },
+    { val: stats.newUtil, label: 'New Utilization = Yes', cls: 'green', sub: _monthBreakdown(stats.newUtilByMonth) },
+    { val: stats.cases,   label: 'Case Counts Written',   cls: 'blue',  sub: null },
+    { val: stats.kb,      label: 'KB Counts Written',     cls: 'blue',  sub: null },
+    { val: stats.removed, label: 'Removed / Deactivated', cls: 'amber', sub: _monthBreakdown(stats.removedByMonth) },
   ];
-  if (hasErr) chips.push({ val: stats.errors, label: 'Errors', cls: 'red' });
+  if (hasErr) chips.push({ val: stats.errors, label: 'Errors', cls: 'red', sub: null });
   if (grid) {
     grid.innerHTML = chips.map(function(c) {
-      return '<div class="util-done-chip ' + c.cls + '">' +
+      var subHtml = c.sub ? '<span class="util-done-chip-sub">' + c.sub + '</span>' : '';
+      return '<div class="util-done-chip ' + c.cls + (c.sub ? ' has-sub' : '') + '">' +
         '<span class="util-done-chip-val">' + c.val + '</span>' +
         '<span class="util-done-chip-label">' + c.label + '</span>' +
+        subHtml +
         '</div>';
     }).join('');
     if (hasErr && chips.length % 2 !== 0) {
@@ -23270,6 +23281,8 @@ async function utilProcessFiles() {
     var token   = await getAccessToken();
     var results = [];
     var updCase = 0, updKb = 0, updUtil = 0, updDesk = 0;
+    var updUtilByMonth  = {};   /* 'MMM YYYY' → count of new Util=Yes */
+    var updDeskByMonth  = {};   /* 'MMM YYYY' → count of Removed/Deact */
     var _kbPeriodCounts = [0, 0, 0];
     var _kbFilesLoaded  = 0;
 
@@ -23474,6 +23487,12 @@ async function utilProcessFiles() {
         rowResult.usdDeskStatus = usdStatus;
         _managerChanges = [];
         updDesk++;
+        (function(){
+          var _dm = ((spItem.fields||{})['MMMEnrollment']||'').trim();
+          var _dy = String((spItem.fields||{})['EnrollmentYYYY']||'').trim();
+          var _dk = _dm&&_dy ? _dm+' '+_dy : (_dm||_dy||'Unknown');
+          updDeskByMonth[_dk] = (updDeskByMonth[_dk]||0)+1;
+        })();
       }
 
       /* CASE — always write */
@@ -23497,6 +23516,12 @@ async function utilProcessFiles() {
         _combinedPatch['field_25'] = _newUtil;
         rowResult.utilization = _newUtil;
         updUtil++;
+        if (_newUtil === 'Yes') {
+          var _um = ((spItem.fields||{})['MMMEnrollment']||'').trim();
+          var _uy = String((spItem.fields||{})['EnrollmentYYYY']||'').trim();
+          var _uk = _um&&_uy ? _um+' '+_uy : (_um||_uy||'Unknown');
+          updUtilByMonth[_uk] = (updUtilByMonth[_uk]||0)+1;
+        }
       }
 
       /* Manager changes (not deact path) */
@@ -23798,7 +23823,9 @@ async function utilProcessFiles() {
       kb:       updKb,
       removed:  updDesk,
       errors:   results.filter(function(r){ return r.status && r.status.indexOf('error:') === 0; }).length,
-      kbPerPeriod: _kbPeriodCounts
+      kbPerPeriod:      _kbPeriodCounts,
+      newUtilByMonth:   updUtilByMonth,
+      removedByMonth:   updDeskByMonth
     });
     if (currentAccount && splSiteId && splListId) {
       await splRefresh();

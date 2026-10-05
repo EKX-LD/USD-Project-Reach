@@ -4143,6 +4143,10 @@ body.dark-mode .ra-th-frozen,
   body.dark-mode #smEmpty{color:#4A5D72!important;}
 
 
+
+    /* ── CL single bar with tiles+controls ─────────────────────────── */
+    .cl-tiles-bar{display:flex;align-items:center;gap:8px;padding:8px 18px;overflow:visible;flex-wrap:nowrap;}
+    .cl-controls-right{display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:nowrap;}
     /* ── CL top bar (replaces sidebar) ─────────────────────────────── */
     .cl-toolbar-wrap{background:#fff;border-bottom:2px solid var(--sap-light-gray);flex-shrink:0;}
     .cl-tiles-bar{display:flex;align-items:center;gap:8px;padding:8px 18px 10px;overflow-x:auto;}
@@ -5641,75 +5645,10 @@ body.dark-mode .ra-th-frozen,
 
 
 <div class="tab-panel" id="panel-clientlists">
-      <!-- ── Top toolbar: search + filters + tiles + actions all in one area ── -->
+      <!-- ── Single bar: tiles left · controls right ── -->
       <div class="cl-toolbar-wrap">
-        <!-- Row 1: title · search · month · year · reset · spacer · buttons -->
-        <div class="cl-toolbar">
-          <span class="ra-toolbar-title">SharePoint Client List</span>
-          <!-- Search -->
-          <div class="ra-toolbar-search" style="max-width:200px;">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2.2"></circle>
-              <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path>
-            </svg>
-            <input type="text" id="clSearch" placeholder="Search all columns…" oninput="clApplyFilters()" aria-label="Search CL records across all columns" disabled="">
-          </div>
-          <!-- Enrollment Month multi-select -->
-          <div class="clf-ms clf-ms-inline" id="clf-ms-month">
-            <button type="button" class="clf-ms-trigger clf-ms-trigger-sm" onclick="clMsOpen(event,'month')">
-              <span id="clf-ms-month-text">All Months</span>
-              <svg width="9" height="6" viewBox="0 0 9 6" fill="none" style="flex-shrink:0;">
-                <path d="M1 1l3.5 3.5L8 1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
-              </svg>
-            </button>
-            <div class="clf-ms-panel" id="clf-ms-month-panel">
-              <label class="clf-ms-item clf-ms-all"><input type="checkbox" id="clf-ms-month-all" onchange="clMsToggleAll('month',this)"> All</label>
-              <label class="clf-ms-item"><input type="checkbox" value="January" onchange="clMsChange('month')"> Jan</label>
-              <label class="clf-ms-item"><input type="checkbox" value="February" onchange="clMsChange('month')"> Feb</label>
-              <label class="clf-ms-item"><input type="checkbox" value="March" onchange="clMsChange('month')"> Mar</label>
-              <label class="clf-ms-item"><input type="checkbox" value="April" onchange="clMsChange('month')"> Apr</label>
-              <label class="clf-ms-item"><input type="checkbox" value="May" onchange="clMsChange('month')"> May</label>
-              <label class="clf-ms-item"><input type="checkbox" value="June" onchange="clMsChange('month')"> Jun</label>
-              <label class="clf-ms-item"><input type="checkbox" value="July" onchange="clMsChange('month')"> Jul</label>
-              <label class="clf-ms-item"><input type="checkbox" value="August" onchange="clMsChange('month')"> Aug</label>
-              <label class="clf-ms-item"><input type="checkbox" value="September" onchange="clMsChange('month')"> Sep</label>
-              <label class="clf-ms-item"><input type="checkbox" value="October" onchange="clMsChange('month')"> Oct</label>
-              <label class="clf-ms-item"><input type="checkbox" value="November" onchange="clMsChange('month')"> Nov</label>
-              <label class="clf-ms-item"><input type="checkbox" value="December" onchange="clMsChange('month')"> Dec</label>
-            </div>
-          </div>
-          <!-- Enrollment Year -->
-          <select class="clf-input clf-input-sm clf-year-inline" id="clf-enrollyyyy" onchange="clApplyFilters()">
-            <option value="">All Years</option>
-            <option value="2024">2024</option>
-            <option value="2025">2025</option>
-            <option value="2026" selected="">2026</option>
-            <option value="2027">2027</option>
-            <option value="2028">2028</option>
-          </select>
-          <!-- Reset -->
-          <button class="ra-sidebar-reset-btn" onclick="clResetFilters()" title="Reset all filters">Reset</button>
-          <div style="flex:1"></div>
-          <!-- Action buttons -->
-          <button class="ra-tool-btn" id="clBtnRefresh" onclick="splRefresh()" disabled="">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M1 4v6h6M23 20v-6h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-            Refresh
-          </button>
-          <button class="ra-tool-btn" id="clBtnColSel" onclick="clOpenColSelector(this)" title="Show or hide columns" aria-label="Column selector">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <rect x="3" y="3" width="4" height="18" rx="1" stroke="currentColor" stroke-width="2"></rect>
-              <rect x="10" y="3" width="4" height="18" rx="1" stroke="currentColor" stroke-width="2"></rect>
-              <rect x="17" y="3" width="4" height="18" rx="1" stroke="currentColor" stroke-width="2"></rect>
-            </svg>
-            Columns
-          </button>
-          <button class="ra-tool-btn" id="clBtnCSV" onclick="clExportCSV()" disabled="">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline><line x1="12" y1="3" x2="12" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line></svg>
-            Export CSV
-          </button>
-        </div>
-        <!-- Row 2: overview counter tiles (one row) -->
         <div class="cl-tiles-bar">
+          <!-- Counter tiles (left) -->
           <div id="clOverviewTiles" class="cl-ov-grid-top">
             <div class="cl-ov-tile" id="cltile-active" data-label="Total Active">—</div>
             <div class="cl-ov-tile" id="cltile-enrolled" data-label="Total Enrolled">—</div>
@@ -5717,6 +5656,71 @@ body.dark-mode .ra-th-frozen,
             <div class="cl-ov-tile" id="cltile-util" data-label="Util Growth">—</div>
             <div class="cl-ov-tile" id="cltile-noutil" data-label="No Util">—</div>
             <div class="cl-ov-tile" id="cltile-market" data-label="Markets">—</div>
+          </div>
+          <!-- Spacer -->
+          <div style="flex:1;min-width:12px;"></div>
+          <!-- Controls (right) -->
+          <div class="cl-controls-right">
+            <!-- Search -->
+            <div class="ra-toolbar-search" style="max-width:200px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2.2"></circle>
+                <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path>
+              </svg>
+              <input type="text" id="clSearch" placeholder="Search all columns…" oninput="clApplyFilters()" aria-label="Search CL records across all columns" disabled="">
+            </div>
+            <!-- Month multi-select -->
+            <div class="clf-ms clf-ms-inline" id="clf-ms-month">
+              <button type="button" class="clf-ms-trigger clf-ms-trigger-sm" onclick="clMsOpen(event,'month')">
+                <span id="clf-ms-month-text">All Months</span>
+                <svg width="9" height="6" viewBox="0 0 9 6" fill="none" style="flex-shrink:0;">
+                  <path d="M1 1l3.5 3.5L8 1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+                </svg>
+              </button>
+              <div class="clf-ms-panel" id="clf-ms-month-panel">
+                <label class="clf-ms-item clf-ms-all"><input type="checkbox" id="clf-ms-month-all" onchange="clMsToggleAll('month',this)"> All</label>
+                <label class="clf-ms-item"><input type="checkbox" value="January" onchange="clMsChange('month')"> Jan</label>
+                <label class="clf-ms-item"><input type="checkbox" value="February" onchange="clMsChange('month')"> Feb</label>
+                <label class="clf-ms-item"><input type="checkbox" value="March" onchange="clMsChange('month')"> Mar</label>
+                <label class="clf-ms-item"><input type="checkbox" value="April" onchange="clMsChange('month')"> Apr</label>
+                <label class="clf-ms-item"><input type="checkbox" value="May" onchange="clMsChange('month')"> May</label>
+                <label class="clf-ms-item"><input type="checkbox" value="June" onchange="clMsChange('month')"> Jun</label>
+                <label class="clf-ms-item"><input type="checkbox" value="July" onchange="clMsChange('month')"> Jul</label>
+                <label class="clf-ms-item"><input type="checkbox" value="August" onchange="clMsChange('month')"> Aug</label>
+                <label class="clf-ms-item"><input type="checkbox" value="September" onchange="clMsChange('month')"> Sep</label>
+                <label class="clf-ms-item"><input type="checkbox" value="October" onchange="clMsChange('month')"> Oct</label>
+                <label class="clf-ms-item"><input type="checkbox" value="November" onchange="clMsChange('month')"> Nov</label>
+                <label class="clf-ms-item"><input type="checkbox" value="December" onchange="clMsChange('month')"> Dec</label>
+              </div>
+            </div>
+            <!-- Year -->
+            <select class="clf-input clf-input-sm clf-year-inline" id="clf-enrollyyyy" onchange="clApplyFilters()">
+              <option value="">All Years</option>
+              <option value="2024">2024</option>
+              <option value="2025">2025</option>
+              <option value="2026" selected="">2026</option>
+              <option value="2027">2027</option>
+              <option value="2028">2028</option>
+            </select>
+            <!-- Reset -->
+            <button class="ra-sidebar-reset-btn" onclick="clResetFilters()" title="Reset all filters">Reset</button>
+            <!-- Action buttons -->
+            <button class="ra-tool-btn" id="clBtnRefresh" onclick="splRefresh()" disabled="">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M1 4v6h6M23 20v-6h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+              Refresh
+            </button>
+            <button class="ra-tool-btn" id="clBtnColSel" onclick="clOpenColSelector(this)" title="Show or hide columns" aria-label="Column selector">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <rect x="3" y="3" width="4" height="18" rx="1" stroke="currentColor" stroke-width="2"></rect>
+                <rect x="10" y="3" width="4" height="18" rx="1" stroke="currentColor" stroke-width="2"></rect>
+                <rect x="17" y="3" width="4" height="18" rx="1" stroke="currentColor" stroke-width="2"></rect>
+              </svg>
+              Columns
+            </button>
+            <button class="ra-tool-btn" id="clBtnCSV" onclick="clExportCSV()" disabled="">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline><line x1="12" y1="3" x2="12" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line></svg>
+              Export CSV
+            </button>
           </div>
         </div>
       </div>

@@ -5084,28 +5084,12 @@ body.dark-mode .ra-th-frozen,
 
         </div>
 
-          <!-- ── Enrollment Month Scope ─────────────────────────────────── -->
-          <div class="upload-card" style="padding:18px 24px 20px;margin-top:14px;" id="utilEnrollScopeCard">
-            <div class="card-header" style="margin-bottom:10px;">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--sap-interactive)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"></path></svg>
-              <h3 class="card-title" style="margin:0;">Enrollment Months to Update</h3>
-            </div>
-            <div style="font-size:12px;color:var(--sap-muted);margin-bottom:12px;line-height:1.5;">
-              Only clients enrolled in the <strong>checked months</strong> will be updated. Concluded months are included when you explicitly check them — this lets you run the final utilization after a period closes.
-            </div>
-            <div id="utilEnrollScopeList" style="display:flex;flex-wrap:wrap;gap:8px;min-height:32px;">
-              <span style="font-size:12px;color:var(--sap-muted);font-style:italic;" id="utilEnrollScopePlaceholder">Set coverage period above to load available months.</span>
-            </div>
-            <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
-              <button onclick="utilEnrollScopeSelectAll(true)"  style="font-size:11px;color:#0070f2;background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;">Select all</button>
-              <button onclick="utilEnrollScopeSelectAll(false)" style="font-size:11px;color:#64748b;background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;">Deselect all</button>
-            </div>
-          </div>
+
         </div>
       </div>
       <div class="wiz-nav-bar">
         <span class="wiz-nav-info" id="uHint1">Select the coverage window to continue</span>
-        <button class="btn-wiz-next" id="uNext1" onclick="utilStepGo(2)" disabled="">
+        <button class="btn-wiz-next" id="uNext1" onclick="utilCheckConcludedThenContinue()" disabled="">
           Continue to Adoption Upload <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
         </button>
       </div>
@@ -6241,61 +6225,6 @@ nrosati@jparks.com - No longer in the ro…</span><span class="notes-icon-btn" t
         </div>
         <!-- /SharePoint Data Rollback -->
 
-        <!-- ── Bulk CSV Restore ──────────────────────────────────── -->
-        <div style="background:#f0fdf4;border:1px solid #16a34a;border-radius:8px;padding:20px 24px;margin-top:20px;" id="csvRestorePanel">
-          <div style="display:flex;align-items:flex-start;gap:12px;">
-            <div style="flex-shrink:0;padding-top:2px;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5z" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </div>
-            <div style="flex:1;min-width:0;">
-              <div style="font-size:14px;font-weight:700;color:#14532d;margin-bottom:3px;">Bulk Case Count Update from Cases CSV</div>
-              <div style="font-size:12px;color:#166534;line-height:1.5;margin-bottom:12px;">
-                Upload a <strong>Salesforce Cases CSV</strong> (e.g. Jul–Sep Cases report). The tool computes the actual case count for each SP client using their individual enrollment window — same logic as the wizard. Only clients who have <strong>at least 1 case in the file</strong> are updated; clients with no match are <strong>skipped and preserved</strong> (no wiping).
-                Utilization is re-derived: <strong>Yes</strong> if new CASE &gt; 0 or existing KB &gt; 0.
-              </div>
-
-              <!-- Upload zone -->
-              <div id="csvr-upload-zone" style="border:2px dashed #86efac;border-radius:6px;padding:18px 20px;text-align:center;background:#fff;cursor:pointer;margin-bottom:12px;"
-                   onclick="document.getElementById('csvr-file-input').click()"
-                   ondragover="event.preventDefault();this.style.borderColor='#16a34a';"
-                   ondragleave="this.style.borderColor='#86efac';"
-                   ondrop="event.preventDefault();this.style.borderColor='#86efac';csvRestoreLoad(event.dataTransfer.files[0]);">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="margin-bottom:6px;color:#16a34a;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="#16a34a" stroke-width="2" stroke-linecap="round"/><polyline points="17 8 12 3 7 8" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="3" x2="12" y2="15" stroke="#16a34a" stroke-width="2" stroke-linecap="round"/></svg>
-                <div style="font-size:12px;color:#166534;font-weight:600;">Click or drag &amp; drop a REACH List CSV</div>
-                <div style="font-size:11px;color:#4ade80;margin-top:3px;">Salesforce Cases export — columns needed: Account Name, Case Number, Opened Date</div>
-              </div>
-              <input type="file" id="csvr-file-input" accept=".csv" style="display:none;" onchange="csvRestoreLoad(this.files[0])">
-
-              <!-- Preview -->
-              <div id="csvr-preview" style="display:none;padding:10px 14px;background:#dcfce7;border:1px solid #86efac;border-radius:6px;margin-bottom:10px;">
-                <div style="font-size:12px;color:#14532d;margin-bottom:8px;line-height:1.5;" id="csvr-preview-msg"></div>
-                <div style="max-height:180px;overflow-y:auto;border:1px solid #bbf7d0;border-radius:4px;background:#fff;">
-                  <table style="width:100%;border-collapse:collapse;font-size:11px;">
-                    <thead><tr style="background:#f0fdf4;"><th style="padding:4px 8px;text-align:left;color:#166534;border-bottom:1px solid #bbf7d0;">Account Name</th><th style="padding:4px 8px;text-align:center;color:#166534;border-bottom:1px solid #bbf7d0;">Cases Found</th><th style="padding:4px 8px;text-align:center;color:#166534;border-bottom:1px solid #bbf7d0;">Existing KB</th><th style="padding:4px 8px;text-align:center;color:#166534;border-bottom:1px solid #bbf7d0;">New Util</th><th style="padding:4px 8px;text-align:center;color:#166534;border-bottom:1px solid #bbf7d0;">Window</th></tr></thead>
-                    <tbody id="csvr-preview-tbody"></tbody>
-                  </table>
-                </div>
-                <div style="display:flex;gap:8px;margin-top:10px;">
-                  <button onclick="csvRestoreCancel()" style="padding:5px 14px;font-size:12px;border:1px solid #16a34a;border-radius:5px;background:#fff;color:#15803d;cursor:pointer;font-weight:600;">Cancel</button>
-                  <button id="csvr-confirm-btn" onclick="csvRestoreExecute()" style="padding:5px 14px;font-size:12px;border:none;border-radius:5px;background:#16a34a;color:#fff;cursor:pointer;font-weight:700;">Write to SharePoint</button>
-                </div>
-              </div>
-
-              <!-- Progress -->
-              <div id="csvr-prog" style="display:none;margin-bottom:8px;">
-                <div id="csvr-prog-text" style="font-size:12px;color:#166534;margin-bottom:5px;"></div>
-                <div style="height:6px;background:#bbf7d0;border-radius:3px;overflow:hidden;">
-                  <div id="csvr-prog-fill" style="height:100%;background:#16a34a;width:0%;transition:width .25s ease;border-radius:3px;"></div>
-                </div>
-              </div>
-              <div id="csvr-done" style="display:none;padding:8px 12px;background:#d1fae5;border:1px solid #6ee7b7;border-radius:6px;">
-                <div id="csvr-done-msg" style="font-size:12px;font-weight:600;color:#065f46;"></div>
-              </div>
-              <div id="csvr-status" style="font-size:12px;color:#166534;min-height:16px;"></div>
-            </div>
-          </div>
-        </div>
-        <!-- /Bulk CSV Restore -->
       </div><!-- /adminContent -->
     </div>
   </div><!-- /panel-admin -->
@@ -15844,6 +15773,28 @@ function _emIframeBorder(el, hover) {
     </td>
   </tr></tbody></table>
 </div>
+
+<!-- ── Concluded Months Confirmation Modal ─────────────────────────── -->
+<div id="utilConcludedModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9400;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:10px;padding:28px 28px 22px;max-width:440px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.22);font-family:'72 Brand',Arial,sans-serif;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#f59e0b" stroke-width="2"/><line x1="12" y1="8" x2="12" y2="12" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="#f59e0b"/></svg>
+      <span style="font-size:15px;font-weight:700;color:#0f172a;">Concluded Enrollment Month Detected</span>
+    </div>
+    <p style="font-size:13px;color:#374151;line-height:1.6;margin:0 0 10px;">
+      The following enrollment months in your coverage window have <strong>concluded their monitoring period</strong>:
+    </p>
+    <div id="utilConcludedList" style="margin:0 0 14px;padding:10px 14px;background:#fef3c7;border:1px solid #fcd34d;border-radius:6px;font-size:12.5px;color:#92400e;line-height:1.8;"></div>
+    <p style="font-size:12.5px;color:#374151;line-height:1.5;margin:0 0 18px;">
+      Do you want to include <strong>concluded months</strong> in this update run?
+    </p>
+    <div style="display:flex;justify-content:flex-end;gap:10px;">
+      <button onclick="utilConcludedResolve(false)" style="padding:8px 18px;font-size:13px;border:1px solid #d1d5db;border-radius:6px;background:#fff;color:#374151;cursor:pointer;font-family:inherit;font-weight:600;">Skip Concluded</button>
+      <button onclick="utilConcludedResolve(true)"  style="padding:8px 18px;font-size:13px;border:none;border-radius:6px;background:#0070f2;color:#fff;cursor:pointer;font-family:inherit;font-weight:700;">Yes, Update All</button>
+    </div>
+  </div>
+</div>
+<!-- /Concluded Months Confirmation Modal -->
 </body></html>`;
 
 
@@ -21998,8 +21949,6 @@ function utilConfirmCoverage(silent) {
 
   if (typeof utilRefreshStepperChecks === 'function') utilRefreshStepperChecks();
 
-  /* ── Populate enrollment month scope selector ── */
-  if (typeof utilEnrollScopePopulate === 'function') utilEnrollScopePopulate();
 }
 
 /* Update the green coverage chip. */
@@ -28104,98 +28053,69 @@ async function csvRestoreExecute() {
 
 
 /* ═══════════════════════════════════════════════════════════════════
-   ENROLLMENT MONTH SCOPE — Step 1 selector helpers
+   ENROLLMENT MONTH SCOPE — auto-derive from coverage + confirm concluded
    ═══════════════════════════════════════════════════════════════════ */
-function utilEnrollScopePopulate() {
-  var list  = document.getElementById('utilEnrollScopeList');
-  var ph    = document.getElementById('utilEnrollScopePlaceholder');
-  if (!list) return;
 
-  /* Collect unique enrollment periods from SP data */
+/* Build utilEnrollMonthFilter from the coverage period window.
+   Called automatically after coverage is confirmed and again after
+   the user responds to the concluded-months confirmation.            */
+function utilEnrollScopeBuild(includeConcluded) {
   var MONTHS = ['January','February','March','April','May','June',
                 'July','August','September','October','November','December'];
-  var periodsMap = {};
-  (splAllItems || []).forEach(function(item) {
-    var f  = item.fields || {};
-    var em = (f['MMMEnrollment']  || '').trim();
-    var ey = String(f['EnrollmentYYYY'] || '').trim();
-    if (!em || !ey) return;
-    var key = em + ' ' + ey;
-    if (!periodsMap[key]) periodsMap[key] = { m: em, y: parseInt(ey, 10), key: key };
-  });
-  var periods = Object.values(periodsMap).sort(function(a, b) {
-    return a.y !== b.y ? a.y - b.y : MONTHS.indexOf(a.m) - MONTHS.indexOf(b.m);
-  });
+  utilEnrollMonthFilter = [];
+  if (!utilCoverStart || !utilCoverStartYear) return;
+  var coverIdx  = MONTHS.indexOf(utilCoverStart);
+  var coverYear = parseInt(utilCoverStartYear, 10);
+  if (coverIdx < 0 || !coverYear) return;
+  for (var i = 0; i < 3; i++) {
+    var mi = (coverIdx + i) % 12;
+    var yi = coverYear + Math.floor((coverIdx + i) / 12);
+    var m  = MONTHS[mi];
+    var y  = String(yi);
+    var ongoing = utilIsOngoing(m, y);
+    if (ongoing || includeConcluded) {
+      utilEnrollMonthFilter.push(m + ' ' + y);
+    }
+  }
+}
 
-  if (!periods.length) {
-    if (ph) ph.style.display = '';
+/* Intercept the Continue button: check for concluded months first */
+function utilCheckConcludedThenContinue() {
+  var MONTHS = ['January','February','March','April','May','June',
+                'July','August','September','October','November','December'];
+  if (!utilCoverStart || !utilCoverStartYear) { utilStepGo(2); return; }
+  var coverIdx  = MONTHS.indexOf(utilCoverStart);
+  var coverYear = parseInt(utilCoverStartYear, 10);
+  var concluded = [];
+  for (var i = 0; i < 3; i++) {
+    var mi = (coverIdx + i) % 12;
+    var yi = coverYear + Math.floor((coverIdx + i) / 12);
+    var m  = MONTHS[mi];
+    if (!utilIsOngoing(m, String(yi))) concluded.push(m + ' ' + yi);
+  }
+  if (!concluded.length) {
+    /* All months ongoing — no prompt needed */
+    utilEnrollScopeBuild(true);
+    utilStepGo(2);
     return;
   }
-  if (ph) ph.style.display = 'none';
-
-  /* Build coverage window months for auto-select */
-  var coverIdx  = utilCoverStart ? MONTHS.indexOf(utilCoverStart) : -1;
-  var coverYear = utilCoverStartYear ? parseInt(utilCoverStartYear, 10) : 0;
-  function inCoverWindow(m, y) {
-    if (coverIdx < 0 || !coverYear) return false;
-    for (var i = 0; i < 3; i++) {
-      var mi = (coverIdx + i) % 12;
-      var yi = coverYear + Math.floor((coverIdx + i) / 12);
-      if (MONTHS[mi] === m && yi === y) return true;
-    }
-    return false;
+  /* Show confirmation modal */
+  var listEl = document.getElementById('utilConcludedList');
+  if (listEl) {
+    listEl.innerHTML = concluded.map(function(p) {
+      return '• <strong>' + p + '</strong>';
+    }).join('<br>');
   }
-
-  list.innerHTML = '';
-  utilEnrollMonthFilter = [];  /* reset */
-
-  periods.forEach(function(p) {
-    var ongoing    = utilIsOngoing(p.m, String(p.y));
-    var autoSelect = inCoverWindow(p.m, p.y);
-    var badge      = ongoing
-      ? '<span style="font-size:10px;background:#dcfce7;color:#15803d;border-radius:3px;padding:1px 5px;font-weight:700;margin-left:4px;">Ongoing</span>'
-      : '<span style="font-size:10px;background:#fef3c7;color:#92400e;border-radius:3px;padding:1px 5px;font-weight:700;margin-left:4px;">Concluded</span>';
-
-    var wrap = document.createElement('label');
-    wrap.style.cssText = 'display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border:1px solid ' +
-      (autoSelect ? '#0070f2' : '#d1d5db') + ';border-radius:6px;background:' +
-      (autoSelect ? '#eff6ff' : '#f9fafb') + ';cursor:pointer;font-size:12px;user-select:none;';
-
-    var cb = document.createElement('input');
-    cb.type    = 'checkbox';
-    cb.value   = p.key;
-    cb.checked = autoSelect;
-    cb.style.accentColor = '#0070f2';
-    cb.onchange = function() { utilEnrollScopeChange(); };
-
-    wrap.appendChild(cb);
-    var span = document.createElement('span');
-    span.innerHTML = '<strong>' + p.m + ' ' + p.y + '</strong>' + badge;
-    wrap.appendChild(span);
-    list.appendChild(wrap);
-
-    if (autoSelect) utilEnrollMonthFilter.push(p.key);
-  });
+  var modal = document.getElementById('utilConcludedModal');
+  if (modal) modal.style.display = 'flex';
 }
 
-function utilEnrollScopeChange() {
-  var checks = document.querySelectorAll('#utilEnrollScopeList input[type=checkbox]');
-  utilEnrollMonthFilter = [];
-  checks.forEach(function(cb) {
-    if (cb.checked) utilEnrollMonthFilter.push(cb.value);
-    /* Update chip style */
-    var lbl = cb.closest('label');
-    if (lbl) {
-      lbl.style.borderColor = cb.checked ? '#0070f2' : '#d1d5db';
-      lbl.style.background  = cb.checked ? '#eff6ff' : '#f9fafb';
-    }
-  });
-}
-
-function utilEnrollScopeSelectAll(state) {
-  var checks = document.querySelectorAll('#utilEnrollScopeList input[type=checkbox]');
-  checks.forEach(function(cb) { cb.checked = state; });
-  utilEnrollScopeChange();
+/* Called by the modal buttons */
+function utilConcludedResolve(includeConcluded) {
+  var modal = document.getElementById('utilConcludedModal');
+  if (modal) modal.style.display = 'none';
+  utilEnrollScopeBuild(includeConcluded);
+  utilStepGo(2);
 }
 
 </script>

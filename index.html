@@ -972,7 +972,7 @@ color:var(--sap-navy);}
     .main-content.cl-tab-active { padding: 0 !important; overflow: hidden !important; }
     .main-content.cl-tab-active #panel-clientlists { display:flex; flex-direction:column; height:100%; }
     .main-content.cl-tab-active .cl-main { flex:1; overflow-y:auto; min-height:0; }
-    .main-content.cl-tab-active .cl-toolbar-wrap { flex-shrink:0; position:relative; overflow:visible; }
+    .main-content.cl-tab-active .cl-toolbar-wrap { flex-shrink:0; position:relative; overflow:visible; z-index:500; }
 
     /* Mirror the RA panel full-bleed approach so the CL sidebar sits flush with the
        viewport left edge.  On non-CL tabs panel is display:none so negative margins
@@ -3516,7 +3516,7 @@ body.dark-mode .ra-th-frozen,
   .clf-ms-panel {
     display:none; position:absolute; left:0; top:calc(100% + 2px);
     background:#fff; border:1px solid #d1d5db; border-radius:6px;
-    box-shadow:0 6px 20px rgba(0,0,0,.12); z-index:900;
+    box-shadow:0 6px 20px rgba(0,0,0,.12); z-index:9999;
     min-width:130px; padding:4px 0; max-height:220px; overflow-y:auto;
   }
   .clf-ms-panel.open { display:block; }
@@ -4151,7 +4151,7 @@ body.dark-mode .ra-th-frozen,
     .cl-tiles-bar{display:flex;align-items:center;gap:8px;padding:8px 18px;overflow:visible;flex-wrap:nowrap;}
     .cl-controls-right{display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:nowrap;}
     /* ── CL top bar (replaces sidebar) ─────────────────────────────── */
-    .cl-toolbar-wrap{background:#fff;border-bottom:2px solid var(--sap-light-gray);flex-shrink:0;}
+    .cl-toolbar-wrap{background:#fff;border-bottom:2px solid var(--sap-light-gray);flex-shrink:0;position:relative;z-index:500;}
     .cl-tiles-bar{display:flex;align-items:center;gap:8px;padding:8px 18px 10px;overflow-x:auto;}
     .cl-ov-grid-top{display:flex;gap:8px;flex-wrap:nowrap;align-items:stretch;}
     .cl-ov-grid-top .cl-ov-tile{min-width:90px;max-width:130px;flex:1;}
@@ -9680,6 +9680,8 @@ function clPopulateYearDropdown() {
   var sel = document.getElementById('clf-enrollyyyy');
   if (!sel) return;
   var currentYear = String(new Date().getFullYear());
+  /* Preserve whatever the user currently has selected */
+  var prevVal = sel.value || currentYear;
   /* Collect unique years from live data */
   var yearsSet = {};
   (splAllItems || []).forEach(function(item) {
@@ -9689,15 +9691,16 @@ function clPopulateYearDropdown() {
   var years = Object.keys(yearsSet).sort();
   /* If no data yet, seed with current year so dropdown is never blank */
   if (!years.length) years = [currentYear];
-  /* Rebuild options */
+  /* Rebuild options — restore previous selection (or fall back to current year) */
   sel.innerHTML = '<option value="">All Years</option>';
   years.forEach(function(y) {
     var opt = document.createElement('option');
     opt.value = y;
     opt.textContent = y;
-    if (y === currentYear) opt.selected = true;
     sel.appendChild(opt);
   });
+  /* Restore prior selection; default to current year if not available */
+  sel.value = (prevVal && sel.querySelector('option[value="' + prevVal + '"]')) ? prevVal : currentYear;
 }
 
 function clApplyFilters() {

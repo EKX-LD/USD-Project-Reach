@@ -12390,23 +12390,10 @@ async function raDoAssign() {
       fyi_persons.push(fsel.options[fsel.selectedIndex].text);
     }
 
-    /* Pull from ALL items for the selected enrollment period — bypasses any
-       UI column / account / search filters so every eligible row gets assigned
-       regardless of what filters are currently active in the view. */
-    var _mm_fi = ((document.getElementById('raEnrollMonth') || {}).value || '').trim();
-    var _yy_fi = ((document.getElementById('raEnrollYear')  || {}).value || '').trim();
-    var fyi_records = (splAllItems || []).filter(function(rec) {
-      var f   = rec.fields || {};
-      var kpi = String(f['field_24'] || '').trim().toLowerCase();
-      var utl = String(f['field_25'] || '').trim().toLowerCase();
-      var usd = String(f['field_8']  || '').trim();
-      if (kpi !== 'yes') return false;
-      if (!raOverrideFilters['field_25'] && utl !== 'no') return false;  // respect Utilization override
-      if (!raOverrideFilters['field_8'] && (!usd || usd === 'Deactivated')) return false;
-      if (_mm_fi && String(f['MMMEnrollment']  || '').trim() !== _mm_fi) return false;
-      if (_yy_fi && String(f['EnrollmentYYYY'] || '').trim() !== _yy_fi) return false;
-      return true;
-    });
+    /* Use exactly the clients visible in the table (raFiltered) so the
+       assignment always matches what the user sees — filters, search, and
+       column filters are all respected. */
+    var fyi_records = (raFiltered || []);
     if (!fyi_records.length) {
       showToast('No records match the current filters.', 'warning');
       return;
@@ -12520,23 +12507,8 @@ async function raDoAssign() {
     persons.push(sel.options[sel.selectedIndex].text);
   }
 
-  /* Pull from ALL items for the selected enrollment period — bypasses any
-     UI column / account / search filters so every eligible row gets assigned
-     regardless of what filters are currently active in the view. */
-  var _mm_gen = ((document.getElementById('raEnrollMonth') || {}).value || '').trim();
-  var _yy_gen = ((document.getElementById('raEnrollYear')  || {}).value || '').trim();
-  var records = (splAllItems || []).filter(function(rec) {
-    var f   = rec.fields || {};
-    var kpi = String(f['field_24'] || '').trim().toLowerCase();
-    var utl = String(f['field_25'] || '').trim().toLowerCase();
-    var usd = String(f['field_8']  || '').trim();
-    if (kpi !== 'yes') return false;
-    if (!raOverrideFilters['field_25'] && utl !== 'no') return false;  // respect Utilization override
-    if (!raOverrideFilters['field_8'] && (!usd || usd === 'Deactivated')) return false;
-    if (_mm_gen && String(f['MMMEnrollment']  || '').trim() !== _mm_gen) return false;
-    if (_yy_gen && String(f['EnrollmentYYYY'] || '').trim() !== _yy_gen) return false;
-    return true;
-  });
+  /* Use exactly the clients visible in the table (raFiltered). */
+  var records = (raFiltered || []);
   if (!records.length) {
     showToast('No records match the current filters.', 'warning');
     return;

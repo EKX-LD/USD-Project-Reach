@@ -969,7 +969,10 @@ color:var(--sap-navy);}
       margin-top:   -32px;
       width: calc(100% + 64px);
     }
-    .main-content.cl-tab-active { padding: 0 !important; }
+    .main-content.cl-tab-active { padding: 0 !important; overflow: hidden !important; }
+    .main-content.cl-tab-active #panel-clientlists { display:flex; flex-direction:column; height:100%; }
+    .main-content.cl-tab-active .cl-main { flex:1; overflow-y:auto; min-height:0; }
+    .main-content.cl-tab-active .cl-toolbar-wrap { flex-shrink:0; position:relative; overflow:visible; }
 
     /* Mirror the RA panel full-bleed approach so the CL sidebar sits flush with the
        viewport left edge.  On non-CL tabs panel is display:none so negative margins
@@ -8340,6 +8343,7 @@ function switchTab(name) {
   if (_sb) _sb.classList.toggle('ra-sidebar-open', name === 'reachout');
   if (name === 'history') renderHistory();
   if (name === 'timeline') renderTimeline();
+  if (name === 'clientlists') { clPopulateYearDropdown(); }
   if (name === 'reachout') {
     raInitYears();
     /* On first switchTab visit (data not yet loaded), also clear browser-restored task */
@@ -9674,16 +9678,18 @@ function clCols() { return clGetActiveCols(); }
 /* ── Populate year dropdown from live data ──────────────────────────────── */
 function clPopulateYearDropdown() {
   var sel = document.getElementById('clf-enrollyyyy');
-  if (!sel || !splAllItems || !splAllItems.length) return;
+  if (!sel) return;
   var currentYear = String(new Date().getFullYear());
-  /* Collect unique years present in the data */
+  /* Collect unique years from live data */
   var yearsSet = {};
-  splAllItems.forEach(function(item) {
+  (splAllItems || []).forEach(function(item) {
     var y = String((item.fields || {})['EnrollmentYYYY'] || '').trim();
     if (y && /^\d{4}$/.test(y)) yearsSet[y] = true;
   });
   var years = Object.keys(yearsSet).sort();
-  /* Rebuild options: keep "All Years" first, then data years */
+  /* If no data yet, seed with current year so dropdown is never blank */
+  if (!years.length) years = [currentYear];
+  /* Rebuild options */
   sel.innerHTML = '<option value="">All Years</option>';
   years.forEach(function(y) {
     var opt = document.createElement('option');

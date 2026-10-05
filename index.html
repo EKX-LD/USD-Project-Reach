@@ -6254,6 +6254,28 @@ nrosati@jparks.com - No longer in the ro…</span><span class="notes-icon-btn" t
                 Utilization is re-derived: <strong>Yes</strong> if new CASE &gt; 0 or existing KB &gt; 0.
               </div>
 
+              <!-- Enrollment month scope for zeroing out unmatched clients -->
+              <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;padding:10px 14px;margin-bottom:12px;">
+                <div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:6px;">Target Enrollment Month (required to zero out unmatched clients)</div>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                  <select id="csvr-enroll-month" style="font-size:12px;padding:4px 8px;border:1px solid #fcd34d;border-radius:4px;font-family:inherit;background:#fff;color:#1e293b;">
+                    <option value="">-- Select month --</option>
+                    <option value="January">January</option><option value="February">February</option>
+                    <option value="March">March</option><option value="April">April</option>
+                    <option value="May">May</option><option value="June">June</option>
+                    <option value="July">July</option><option value="August">August</option>
+                    <option value="September">September</option><option value="October">October</option>
+                    <option value="November">November</option><option value="December">December</option>
+                  </select>
+                  <select id="csvr-enroll-year" style="font-size:12px;padding:4px 8px;border:1px solid #fcd34d;border-radius:4px;font-family:inherit;background:#fff;color:#1e293b;">
+                    <option value="">-- Year --</option>
+                    <option value="2024">2024</option><option value="2025">2025</option>
+                    <option value="2026" selected>2026</option><option value="2027">2027</option>
+                  </select>
+                  <span style="font-size:11px;color:#92400e;">Clients from this month NOT in the cases file will be set to CASE = 0</span>
+                </div>
+              </div>
+
               <!-- Upload zone -->
               <div id="csvr-upload-zone" style="border:2px dashed #86efac;border-radius:6px;padding:18px 20px;text-align:center;background:#fff;cursor:pointer;margin-bottom:12px;"
                    onclick="document.getElementById('csvr-file-input').click()"
@@ -27830,7 +27852,11 @@ function csvRestoreLoad(file) {
       return;
     }
 
-    /* ── Helper: find a column value by candidate names ── */
+    /* ── Get target enrollment month / year for zero-out scope ── */
+    var targetMonth = (document.getElementById('csvr-enroll-month') || {}).value || '';
+    var targetYear  = (document.getElementById('csvr-enroll-year')  || {}).value || '';
+
+    /* ── Helper: find a column value ── */
     function getCol(row, candidates) {
       for (var k in row) {
         var kl = k.trim().toLowerCase().replace(/[^a-z0-9]/g,'');
@@ -27845,7 +27871,7 @@ function csvRestoreLoad(file) {
     var casesByName = {};
     rows.forEach(function(row) {
       var acct = getCol(row, ['accountname','accountaccountname','title']).toLowerCase();
-      var dateStr = getCol(row, ['openeddate','datetimeopened','caseopendate','opendate','openeddate']);
+      var dateStr = getCol(row, ['openeddate','datetimeopened','caseopendate','opendate']);
       if (!acct) return;
       if (!casesByName[acct]) casesByName[acct] = [];
       casesByName[acct].push({ dateStr: dateStr });
@@ -27853,12 +27879,12 @@ function csvRestoreLoad(file) {
 
     var totalCaseRows = rows.length;
     var uniqueAccts   = Object.keys(casesByName).length;
-
-    /* ── For each SP client: compute case count within their enrollment window ── */
     _csvrRows = [];
+
     var LD_M = ['January','February','March','April','May','June',
                 'July','August','September','October','November','December'];
 
+    /* ── Pass 1: clients IN the file with ≥1 case in their window ── */
     splAllItems.forEach(function(item) {
       var f     = item.fields || {};
       var name  = (f['Title'] || '').trim();
@@ -27868,62 +27894,98 @@ function csvRestoreLoad(file) {
 
       var nameLow = name.toLowerCase();
       var casesForClient = casesByName[nameLow];
-      if (!casesForClient) return;   /* NOT in file — SKIP, preserve existing value */
+      if (!casesForClient) return;  /* not in file — handled in pass 2 */
 
-      /* Compute enrollment window (same logic as wizard) */
       var enrollIdx = LD_M.indexOf(em);
       if (enrollIdx < 0) return;
-      var startY    = parseInt(ey, 10);
-      var endIdx    = enrollIdx + 2;
-      var endMIdx   = endIdx % 12;
-      var endY      = startY + Math.floor(endIdx / 12);
-      var winStart  = new Date(startY, enrollIdx, 1);
-      var winEnd    = new Date(endY, endMIdx + 1, 0, 23, 59, 59, 999);
+      var startY  = parseInt(ey, 10);
+      var endIdx  = enrollIdx + 2;
+      var endMIdx = endIdx % 12;
+      var endY    = startY + Math.floor(endIdx / 12);
+      var winStart = new Date(startY, enrollIdx, 1);
+      var winEnd   = new Date(endY, endMIdx + 1, 0, 23, 59, 59, 999);
 
-      /* Count cases within window */
       var cCount = 0;
       casesForClient.forEach(function(c) {
-        if (!c.dateStr) { cCount++; return; } /* no date → count (fail-open) */
+        if (!c.dateStr) { cCount++; return; }
         var d = new Date(c.dateStr);
-        if (isNaN(d)) { cCount++; return; }   /* unparseable → count */
+        if (isNaN(d)) { cCount++; return; }
         if (d >= winStart && d <= winEnd) cCount++;
       });
 
-      if (cCount === 0) return;  /* found in file but 0 cases in window — skip, preserve */
+      if (cCount === 0) return;  /* in file but 0 in window — handled in pass 2 */
 
-      /* Existing KB from SP (preserved — not touched) */
       var existKb = parseInt(String(f['field_26'] || '').replace(/[^0-9]/g,'')) || 0;
-      var newUtil = (cCount + existKb > 0) ? 'Yes' : 'No';
-
       _csvrRows.push({
         name:    name,
         caseN:   cCount,
         kbN:     existKb,
-        newUtil: newUtil,
+        newUtil: (cCount + existKb > 0) ? 'Yes' : 'No',
         window:  LD_M[enrollIdx] + ' ' + ey + ' → ' + LD_M[endMIdx] + ' ' + endY,
+        action:  'update',
         spItem:  item
       });
     });
 
+    /* ── Pass 2: target-month clients with CASE > 0 in SP but 0 in file ── */
+    var zeroCount = 0;
+    if (targetMonth && targetYear) {
+      splAllItems.forEach(function(item) {
+        var f    = item.fields || {};
+        var name = (f['Title'] || '').trim();
+        var em   = (f['MMMEnrollment']  || '').trim();
+        var ey   = String(f['EnrollmentYYYY'] || '').trim();
+        if (!name || em !== targetMonth || ey !== targetYear) return;
+
+        var caseInSp = parseInt(String(f['field_27'] || '').replace(/[^0-9]/g,'')) || 0;
+        if (caseInSp === 0) return;  /* already 0, skip */
+
+        /* Already handled in pass 1? */
+        var alreadyIn = _csvrRows.some(function(r){ return r.spItem === item; });
+        if (alreadyIn) return;
+
+        /* This client has CASE > 0 in SP but nothing useful in the file */
+        var existKb = parseInt(String(f['field_26'] || '').replace(/[^0-9]/g,'')) || 0;
+        _csvrRows.push({
+          name:    name,
+          caseN:   0,
+          kbN:     existKb,
+          newUtil: existKb > 0 ? 'Yes' : 'No',
+          window:  em + ' ' + ey + ' → (no cases found)',
+          action:  'zero',
+          spItem:  item
+        });
+        zeroCount++;
+      });
+    }
+
     if (!_csvrRows.length) {
       document.getElementById('csvr-status').textContent =
-        'No SP clients matched cases in their enrollment window. Check that the file contains the right date range.';
+        'No clients to update. Check that the file has the right date range' +
+        (targetMonth ? ' and that ' + targetMonth + ' ' + targetYear + ' clients exist in SP.' : '.');
       return;
     }
 
-    /* ── Preview ── */
-    var msg = '<strong>' + _csvrRows.length + ' clients</strong> have cases in their enrollment window and will be updated. ' +
-              'Clients not in the file or with 0 matching cases are <strong>preserved</strong>. ' +
-              '(File: ' + totalCaseRows.toLocaleString() + ' rows, ' + uniqueAccts.toLocaleString() + ' unique accounts)';
+    var updateRows = _csvrRows.filter(function(r){ return r.action === 'update'; });
+    var zeroRows   = _csvrRows.filter(function(r){ return r.action === 'zero'; });
+
+    var msg = '<strong>' + updateRows.length + ' clients</strong> have cases in their window (will get correct count)';
+    if (zeroRows.length) {
+      msg += ' &nbsp;+&nbsp; <strong style="color:#dc2626;">' + zeroRows.length +
+             ' ' + targetMonth + ' ' + targetYear + ' clients</strong> have CASE &gt; 0 in SP but <em>zero cases in this file</em> (will be set to CASE = 0).';
+    }
+    msg += '<br><span style="font-size:10px;color:#64748b;">File: ' + totalCaseRows.toLocaleString() + ' rows, ' + uniqueAccts.toLocaleString() + ' unique accounts</span>';
     document.getElementById('csvr-preview-msg').innerHTML = msg;
 
     var tbody = document.getElementById('csvr-preview-tbody');
     tbody.innerHTML = '';
-    _csvrRows.slice(0, 300).forEach(function(r) {
+    _csvrRows.forEach(function(r) {
       var tr = document.createElement('tr');
+      var isZero = r.action === 'zero';
+      tr.style.background = isZero ? '#fff5f5' : '';
       tr.innerHTML =
         '<td style="padding:3px 8px;border-bottom:1px solid #f0fdf4;">' + escHtml(r.name) + '</td>'
-        + '<td style="padding:3px 8px;text-align:center;border-bottom:1px solid #f0fdf4;font-weight:700;color:#15803d;">' + r.caseN + '</td>'
+        + '<td style="padding:3px 8px;text-align:center;border-bottom:1px solid #f0fdf4;font-weight:700;color:' + (isZero ? '#dc2626' : '#15803d') + ';">' + r.caseN + '</td>'
         + '<td style="padding:3px 8px;text-align:center;border-bottom:1px solid #f0fdf4;">' + r.kbN + '</td>'
         + '<td style="padding:3px 8px;text-align:center;border-bottom:1px solid #f0fdf4;color:' + (r.newUtil==='Yes'?'#15803d':'#dc2626') + ';font-weight:700;">' + r.newUtil + '</td>'
         + '<td style="padding:3px 8px;font-size:10px;color:#64748b;border-bottom:1px solid #f0fdf4;">' + escHtml(r.window) + '</td>';
@@ -27970,12 +28032,8 @@ async function csvRestoreExecute() {
     var CONC  = 5;
     async function _runBatchR(items) {
       await Promise.all(items.map(async function(r) {
-        /* Write CASE count (computed from file) + re-derived Utilization.
-           KB is NOT written — it is preserved as-is in SP. */
-        var patch = {
-          'field_27': String(r.caseN),
-          'field_25': r.newUtil
-        };
+        /* Write CASE count + re-derived Utilization. KB preserved. */
+        var patch = { 'field_27': String(r.caseN), 'field_25': r.newUtil };
         try {
           await utilPatchSpItem(r.spItem.id, patch, token);
           /* Update in-memory */

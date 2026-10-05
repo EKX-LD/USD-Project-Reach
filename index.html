@@ -27949,7 +27949,7 @@ function csvRestoreCancel() {
 }
 
 async function csvRestoreExecute() {
-  var toWrite = _csvrRows.filter(function(r){ return r.matched; });
+  var toWrite = _csvrRows.filter(function(r){ return r.spItem; });
   if (!toWrite.length) return;
   if (!currentAccount) { showToast('Please sign in first.', 'warning'); return; }
   document.getElementById('csvr-confirm-btn').disabled = true;

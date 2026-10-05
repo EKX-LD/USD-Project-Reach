@@ -20876,8 +20876,16 @@ async function nrfyiSendEmailViaGraph() {
   addLog('Sending Non-responsive FYI 2AO email to ' + to + '\u2026', 'info');
 
   try {
-    var token = await msalReady;
-    if (!token) throw new Error('No auth token available.');
+    var instance  = await msalReady;
+    var mailToken;
+    var mailScopes = ['https://graph.microsoft.com/Mail.Send'];
+    try {
+      mailToken = (await instance.acquireTokenSilent({ scopes: mailScopes, account: currentAccount })).accessToken;
+    } catch (_) {
+      mailToken = (await instance.acquireTokenPopup({ scopes: mailScopes, account: currentAccount })).accessToken;
+    }
+    var token = mailToken;
+    if (!token) throw new Error('No Mail.Send token available.');
 
     var resp; var sent = false;
 

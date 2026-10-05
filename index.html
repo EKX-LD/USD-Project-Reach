@@ -21696,7 +21696,7 @@ var utilCoverStartYear= '';
 var utilCoverOk       = false;
 var utilFolderCache   = [null, null, null];
 
-var UTIL_PREFIXES     = ['AF Adoption', 'AF Case', 'AF KB'];
+var UTIL_PREFIXES     = ['Utili-Update Adoption', 'Utili-Update Case', 'Utili-Update KB'];
 var UTIL_CARD_LABELS  = ['Adoption USD Change', 'Case After Reach Out', 'KB After Reach Out'];
 
 /* ── KB state — 3 separate uploads, one per active enrollment period ───────── */
@@ -21705,7 +21705,7 @@ var utilKbSelNames    = [null, null, null];
 var utilKbCsvData     = [null, null, null];
 var utilKbUploadDone  = [false, false, false];
 var utilKbPeriods     = [null, null, null];   /* [{month:'July',year:'2026'}, …] */
-var UTIL_KB_PREFIXES  = ['AF KB', 'AF KB', 'AF KB']; /* updated by utilInitKbCards */
+var UTIL_KB_PREFIXES  = ['Utili-Update KB', 'Utili-Update KB', 'Utili-Update KB']; /* updated by utilInitKbCards */
 var UTIL_UPLOAD_ICON  = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="17 8 12 3 7 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="3" x2="12" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
 
 /* ── Enrollment Date Modal ──────────────────────────────────────────────── */
@@ -21892,6 +21892,14 @@ function utilConfirmCoverage(silent) {
   utilCoverStartYear = y;
   utilCoverOk        = true;
 
+  /* Update Case file prefix to include the coverage month range (e.g. AF Jul-Sep Cases) */
+  var _covMON3  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var _startIdx = LD_MONTHS.indexOf(m);
+  var _endIdx   = (_startIdx + 2) % 12;
+  var _startM3  = _covMON3[_startIdx] || m;
+  var _endM3    = _covMON3[_endIdx]   || '';
+  UTIL_PREFIXES[1] = 'Utili-Update ' + _startM3 + '-' + _endM3 + ' Cases';
+
   /* Refresh KB card labels + Case/KB notes */
   if (typeof utilInitKbCards === 'function') utilInitKbCards();
 
@@ -22016,7 +22024,7 @@ function utilInitKbCards() {
   utilKbPeriods = periods;
   for (var ki = 0; ki < 3; ki++) {
     var p = periods[ki]; if (!p) continue;
-    UTIL_KB_PREFIXES[ki] = 'AF KB ' + MON3[LD_MONTHS.indexOf(p.month)] + p.year;
+    UTIL_KB_PREFIXES[ki] = 'Utili-Update KB ' + MON3[LD_MONTHS.indexOf(p.month)] + p.year;
     var lbl = document.getElementById('util-kb-periodLabel-' + ki);
     if (lbl) lbl.textContent = p.month + ' ' + p.year + ' Enrollment';
     var cov = document.getElementById('util-kb-coverage-' + ki);
@@ -22130,7 +22138,7 @@ function utilReadCsvFile(idx, file) {
 
 /* ── KB sub-card file naming, drag/drop, read, upload ────────────────── */
 function computeUtilKbFileName(ki,file){
-  var prefix=UTIL_KB_PREFIXES[ki]||'AF KB';
+  var prefix=UTIL_KB_PREFIXES[ki]||'Utili-Update KB';
   var now=file.lastModified?new Date(file.lastModified):new Date();
   var M3=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var day=now.getDate(),mon3=M3[now.getMonth()],yr=now.getFullYear();

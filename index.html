@@ -18996,9 +18996,8 @@ function raCheckEmailBtn() {
           if (!_it) return false;
           var _f6  = _it.fields || {};
           var _o6  = (_f6['field_1']  || '').trim();
-          var _dt6 = (_f6['field_19'] || '').trim();
           var _rp6 = (_f6['field_21'] || '').trim();
-          if (!_o6 || !_dt6 || _rp6) return false;
+          if (!_o6 || _rp6) return false;  /* need 2nd AO; FYI response must be blank */
           if (_owner6 === null) _owner6 = _o6;
           return _owner6 === _o6;
         });
@@ -21083,13 +21082,7 @@ async function nrfyiSendEmailViaGraph() {
 function _injectDashboardFooter(html) {
   var url = (typeof DASHBOARD_URL !== 'undefined') ? DASHBOARD_URL : '';
   if (!url) return html;
-  var cta = '<table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top:18px;">'
-    + '<tr><td align="center" style="padding:10px 0;border-top:1px solid #e5e7eb;">'
-    + '<span style="font-family:Arial,sans-serif;font-size:10pt;color:#64748b;">'
-    + 'Access the dashboard: '
-    + '<a href="' + url + '" style="color:#0070f2;text-decoration:underline;">' + url + '</a>'
-    + '</span></td></tr></table>';
-  return html.replace(/<\/body>/i, cta + '</body>');
+  return html;
 }
 
 function raBuildEmailHtml(item) {

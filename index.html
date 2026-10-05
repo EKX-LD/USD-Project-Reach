@@ -984,13 +984,8 @@ color:var(--sap-navy);}
       margin: 0;
       width: 100%;
     }
-    .cl-layout{display:flex;height:calc(100vh - 110px);min-height:500px;overflow:hidden;}
-    .cl-leftnav{
-      width:220px;background:#fff;
-      border-right:1px solid var(--sap-light-gray);
-      padding:18px 14px 24px 0;
-      overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:0;flex-shrink:0;
-    }
+    /* cl-layout removed – sidebar gone */
+    .cl-leftnav{display:none;}  /* sidebar removed */
     .cl-nav-title{
       font-size:11px;font-weight:700;letter-spacing:.08em;
       color:var(--sap-medium-gray);text-transform:uppercase;
@@ -1013,8 +1008,8 @@ color:var(--sap-navy);}
       font-size:11px;color:var(--sap-mid-gray);cursor:pointer;
     }
     .clf-reset:hover{border-color:var(--sap-error);color:var(--sap-error);}
-    .cl-main{flex:1;min-width:0;display:flex;flex-direction:column;background:#f5f6f8;overflow:hidden;}
-    .cl-toolbar{display:flex;align-items:center;gap:10px;padding:12px 18px 10px;background:#fff;border-bottom:1px solid var(--sap-light-gray);flex-shrink:0;}
+    .cl-main{flex:1;min-width:0;display:flex;flex-direction:column;background:#f5f6f8;overflow-y:auto;}
+    .cl-toolbar{display:flex;align-items:center;gap:8px;padding:10px 18px;background:#fff;border-bottom:1px solid var(--sap-light-gray);flex-shrink:0;flex-wrap:wrap;}
     /* CL column filter icons */
     .cl-th-filterable{position:relative;padding-right:22px !important;}
     .cl-th-sort{cursor:pointer !important;display:inline;}
@@ -4147,6 +4142,22 @@ body.dark-mode .ra-th-frozen,
   body.dark-mode #smAiInsights,body.dark-mode #smTopCohorts,body.dark-mode #smNeedsAttn,body.dark-mode #smRateChartWrap > div{background:#252D38!important;border-color:#38414E!important;}
   body.dark-mode #smEmpty{color:#4A5D72!important;}
 
+
+    /* ── CL top bar (replaces sidebar) ─────────────────────────────── */
+    .cl-toolbar-wrap{background:#fff;border-bottom:2px solid var(--sap-light-gray);flex-shrink:0;}
+    .cl-tiles-bar{display:flex;align-items:center;gap:8px;padding:8px 18px 10px;overflow-x:auto;}
+    .cl-ov-grid-top{display:flex;gap:8px;flex-wrap:nowrap;align-items:stretch;}
+    .cl-ov-grid-top .cl-ov-tile{min-width:90px;max-width:130px;flex:1;}
+    .clf-ms-inline{position:relative;}
+    .clf-ms-trigger-sm{
+      display:flex;align-items:center;gap:5px;
+      padding:5px 9px;font-size:12px;font-family:inherit;
+      background:#fff;border:1px solid var(--sap-light-gray);
+      border-radius:4px;cursor:pointer;white-space:nowrap;
+      color:var(--sap-black);
+    }
+    .clf-ms-trigger-sm:hover{border-color:var(--sap-primary);}
+    .clf-year-inline{width:90px;padding:5px 7px;font-size:12px;font-family:inherit;}
 </style>
 <script src="./USD Project Reach — Client Dashboard v130_files/view"></script><style></style><link rel="icon" type="image/png" href="data:image/png;base64,data:image/png;base64,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"><script data-smh2c="1" src="./USD Project Reach — Client Dashboard v130_files/view(1)"></script></head><body style="margin:0;padding:0;">
 
@@ -5630,91 +5641,54 @@ body.dark-mode .ra-th-frozen,
 
 
 <div class="tab-panel" id="panel-clientlists">
-    <div class="cl-layout">
-      <!-- Left Nav -->
-      <aside class="cl-leftnav">
-        <!-- ── Filter header ───────────────────────────────────── -->
-        <div class="cl-nav-title">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-          </svg>
-          Filters
-          <button class="ra-sidebar-reset-btn" onclick="clResetFilters()" title="Reset all filters" style="margin-left:auto;">Reset</button>
-        </div>
-
-        <!-- ── Month + Year row ─────────────────────────────────── -->
-        <div class="clf-row2">
-          <!-- Enrollment Month multi-select -->
-          <div class="clf-col">
-            <label class="clf-label">Month</label>
-            <div class="clf-ms" id="clf-ms-month">
-              <button type="button" class="clf-ms-trigger" onclick="clMsOpen(event,'month')">
-                <span id="clf-ms-month-text">All</span>
-                <svg width="9" height="6" viewBox="0 0 9 6" fill="none" style="flex-shrink:0;">
-                  <path d="M1 1l3.5 3.5L8 1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
-                </svg>
-              </button>
-              <div class="clf-ms-panel" id="clf-ms-month-panel">
-                <label class="clf-ms-item clf-ms-all"><input type="checkbox" id="clf-ms-month-all" onchange="clMsToggleAll('month',this)"> All</label>
-                <label class="clf-ms-item"><input type="checkbox" value="January" onchange="clMsChange('month')"> Jan</label>
-                <label class="clf-ms-item"><input type="checkbox" value="February" onchange="clMsChange('month')"> Feb</label>
-                <label class="clf-ms-item"><input type="checkbox" value="March" onchange="clMsChange('month')"> Mar</label>
-                <label class="clf-ms-item"><input type="checkbox" value="April" onchange="clMsChange('month')"> Apr</label>
-                <label class="clf-ms-item"><input type="checkbox" value="May" onchange="clMsChange('month')"> May</label>
-                <label class="clf-ms-item"><input type="checkbox" value="June" onchange="clMsChange('month')"> Jun</label>
-                <label class="clf-ms-item"><input type="checkbox" value="July" onchange="clMsChange('month')"> Jul</label>
-                <label class="clf-ms-item"><input type="checkbox" value="August" onchange="clMsChange('month')"> Aug</label>
-                <label class="clf-ms-item"><input type="checkbox" value="September" onchange="clMsChange('month')"> Sep</label>
-                <label class="clf-ms-item"><input type="checkbox" value="October" onchange="clMsChange('month')"> Oct</label>
-                <label class="clf-ms-item"><input type="checkbox" value="November" onchange="clMsChange('month')"> Nov</label>
-                <label class="clf-ms-item"><input type="checkbox" value="December" onchange="clMsChange('month')"> Dec</label>
-              </div>
-            </div>
-          </div>
-          <!-- Enrollment Year select -->
-          <div class="clf-col">
-            <label class="clf-label">Year</label>
-            <select class="clf-input clf-input-sm" id="clf-enrollyyyy" onchange="clApplyFilters()">
-              <option value="">All</option>
-              <option value="2024">2024</option>
-              <option value="2025">2025</option>
-              <option value="2026" selected="">2026</option>
-              <option value="2027">2027</option>
-              <option value="2028">2028</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- ── Overview tiles ──────────────────────────────────── -->
-        <div class="cl-overview-section">
-          <div class="cl-overview-hd">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"></rect><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"></rect><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"></rect><rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"></rect></svg>
-            Overview
-          </div>
-          <div id="clOverviewTiles" class="cl-ov-grid">
-            <div class="cl-ov-tile" id="cltile-active" data-label="Total Active">—</div>
-            <div class="cl-ov-tile" id="cltile-enrolled" data-label="Total Enrolled">—</div>
-            <div class="cl-ov-tile" id="cltile-kpi" data-label="KPI Added">—</div>
-            <div class="cl-ov-tile" id="cltile-util" data-label="Util Growth">—</div>
-            <div class="cl-ov-tile" id="cltile-noutil" data-label="No Util">—</div>
-            <div class="cl-ov-tile" id="cltile-market" data-label="Markets">—</div>
-          </div>
-        </div>
-
-      </aside>
-      <!-- Main area -->
-      <div class="cl-main">
+      <!-- ── Top toolbar: search + filters + tiles + actions all in one area ── -->
+      <div class="cl-toolbar-wrap">
+        <!-- Row 1: title · search · month · year · reset · spacer · buttons -->
         <div class="cl-toolbar">
-          <!-- Title -->
           <span class="ra-toolbar-title">SharePoint Client List</span>
           <!-- Search -->
-          <div class="ra-toolbar-search" style="max-width:220px;">
+          <div class="ra-toolbar-search" style="max-width:200px;">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2.2"></circle>
               <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path>
             </svg>
             <input type="text" id="clSearch" placeholder="Search all columns…" oninput="clApplyFilters()" aria-label="Search CL records across all columns" disabled="">
           </div>
+          <!-- Enrollment Month multi-select -->
+          <div class="clf-ms clf-ms-inline" id="clf-ms-month">
+            <button type="button" class="clf-ms-trigger clf-ms-trigger-sm" onclick="clMsOpen(event,'month')">
+              <span id="clf-ms-month-text">All Months</span>
+              <svg width="9" height="6" viewBox="0 0 9 6" fill="none" style="flex-shrink:0;">
+                <path d="M1 1l3.5 3.5L8 1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+              </svg>
+            </button>
+            <div class="clf-ms-panel" id="clf-ms-month-panel">
+              <label class="clf-ms-item clf-ms-all"><input type="checkbox" id="clf-ms-month-all" onchange="clMsToggleAll('month',this)"> All</label>
+              <label class="clf-ms-item"><input type="checkbox" value="January" onchange="clMsChange('month')"> Jan</label>
+              <label class="clf-ms-item"><input type="checkbox" value="February" onchange="clMsChange('month')"> Feb</label>
+              <label class="clf-ms-item"><input type="checkbox" value="March" onchange="clMsChange('month')"> Mar</label>
+              <label class="clf-ms-item"><input type="checkbox" value="April" onchange="clMsChange('month')"> Apr</label>
+              <label class="clf-ms-item"><input type="checkbox" value="May" onchange="clMsChange('month')"> May</label>
+              <label class="clf-ms-item"><input type="checkbox" value="June" onchange="clMsChange('month')"> Jun</label>
+              <label class="clf-ms-item"><input type="checkbox" value="July" onchange="clMsChange('month')"> Jul</label>
+              <label class="clf-ms-item"><input type="checkbox" value="August" onchange="clMsChange('month')"> Aug</label>
+              <label class="clf-ms-item"><input type="checkbox" value="September" onchange="clMsChange('month')"> Sep</label>
+              <label class="clf-ms-item"><input type="checkbox" value="October" onchange="clMsChange('month')"> Oct</label>
+              <label class="clf-ms-item"><input type="checkbox" value="November" onchange="clMsChange('month')"> Nov</label>
+              <label class="clf-ms-item"><input type="checkbox" value="December" onchange="clMsChange('month')"> Dec</label>
+            </div>
+          </div>
+          <!-- Enrollment Year -->
+          <select class="clf-input clf-input-sm clf-year-inline" id="clf-enrollyyyy" onchange="clApplyFilters()">
+            <option value="">All Years</option>
+            <option value="2024">2024</option>
+            <option value="2025">2025</option>
+            <option value="2026" selected="">2026</option>
+            <option value="2027">2027</option>
+            <option value="2028">2028</option>
+          </select>
+          <!-- Reset -->
+          <button class="ra-sidebar-reset-btn" onclick="clResetFilters()" title="Reset all filters">Reset</button>
           <div style="flex:1"></div>
           <!-- Action buttons -->
           <button class="ra-tool-btn" id="clBtnRefresh" onclick="splRefresh()" disabled="">
@@ -5734,6 +5708,21 @@ body.dark-mode .ra-th-frozen,
             Export CSV
           </button>
         </div>
+        <!-- Row 2: overview counter tiles (one row) -->
+        <div class="cl-tiles-bar">
+          <div id="clOverviewTiles" class="cl-ov-grid-top">
+            <div class="cl-ov-tile" id="cltile-active" data-label="Total Active">—</div>
+            <div class="cl-ov-tile" id="cltile-enrolled" data-label="Total Enrolled">—</div>
+            <div class="cl-ov-tile" id="cltile-kpi" data-label="KPI Added">—</div>
+            <div class="cl-ov-tile" id="cltile-util" data-label="Util Growth">—</div>
+            <div class="cl-ov-tile" id="cltile-noutil" data-label="No Util">—</div>
+            <div class="cl-ov-tile" id="cltile-market" data-label="Markets">—</div>
+          </div>
+        </div>
+      </div>
+      <!-- Table area -->
+      <div class="cl-main">
+        <div class="cl-toolbar" style="display:none;"><!-- placeholder kept for JS compat --></div>
         <!-- Sync-in-progress banner -->
         <div id="clSyncBanner" class="sync-banner" style="display: none;" aria-live="polite">
           <span class="sync-spinner"></span>

@@ -5699,6 +5699,7 @@ body.dark-mode .ra-th-frozen,
             <!-- Year -->
             <select class="clf-input clf-input-sm clf-year-inline" id="clf-enrollyyyy" onchange="clApplyFilters()">
               <option value="">All Years</option>
+              <option value="2026" selected="">2026</option>
             </select>
             <!-- Reset -->
             <button class="ra-sidebar-reset-btn" onclick="clResetFilters()" title="Reset all filters">Reset</button>
@@ -8343,7 +8344,7 @@ function switchTab(name) {
   if (_sb) _sb.classList.toggle('ra-sidebar-open', name === 'reachout');
   if (name === 'history') renderHistory();
   if (name === 'timeline') renderTimeline();
-  if (name === 'clientlists') { clPopulateYearDropdown(); }
+  if (name === 'clientlists') { setTimeout(clPopulateYearDropdown, 0); }
   if (name === 'reachout') {
     raInitYears();
     /* On first switchTab visit (data not yet loaded), also clear browser-restored task */
@@ -9680,33 +9681,29 @@ function clPopulateYearDropdown() {
   var sel = document.getElementById('clf-enrollyyyy');
   if (!sel) return;
   var currentYear = String(new Date().getFullYear());
-  /* Preserve whatever the user currently has selected (default to current year) */
+  /* Preserve user's current selection; default to current year */
   var prevVal = sel.value || currentYear;
-  /* Collect unique years from live data */
+  /* Collect unique years present in live data */
   var yearsSet = {};
   (splAllItems || []).forEach(function(item) {
     var y = String((item.fields || {})['EnrollmentYYYY'] || '').trim();
     if (y && y.length === 4 && !isNaN(Number(y))) yearsSet[y] = true;
   });
   var years = Object.keys(yearsSet).sort();
-  /* If no data yet, seed with current year so dropdown is never blank */
-  if (!years.length) years = [currentYear];
-  /* Ensure target year is in the list */
-  if (years.indexOf(prevVal) === -1 && years.indexOf(currentYear) === -1) years.push(currentYear);
+  /* Always ensure current year is available */
+  if (years.indexOf(currentYear) === -1) years.push(currentYear);
   years.sort();
-  /* Rebuild options */
+  /* Determine which year to select */
+  var target = (years.indexOf(prevVal) !== -1) ? prevVal : currentYear;
+  /* Rebuild options — use opt.selected directly (more reliable than sel.value) */
   sel.innerHTML = '<option value="">All Years</option>';
   years.forEach(function(y) {
     var opt = document.createElement('option');
     opt.value = y;
     opt.textContent = y;
+    opt.selected = (y === target);
     sel.appendChild(opt);
   });
-  /* Set value — prefer prevVal, then currentYear, then first available */
-  var target = (years.indexOf(prevVal) !== -1) ? prevVal
-             : (years.indexOf(currentYear) !== -1) ? currentYear
-             : years[0];
-  sel.value = target || '';
 }
 
 function clApplyFilters() {

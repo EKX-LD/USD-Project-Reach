@@ -6227,6 +6227,27 @@ nrosati@jparks.com - No longer in the ro…</span><span class="notes-icon-btn" t
         </div>
         <!-- /SharePoint Data Rollback -->
 
+        <!-- ── KPI Score Report ──────────────────────────────────── -->
+        <div style="background:#f5f3ff;border:1px solid #7c3aed;border-radius:8px;padding:20px 24px;margin-top:20px;">
+          <div style="display:flex;align-items:flex-start;gap:12px;">
+            <div style="flex-shrink:0;padding-top:2px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 11l3 3L22 4" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:14px;font-weight:700;color:#4c1d95;margin-bottom:3px;">KPI Goal 2 Score Report</div>
+              <div style="font-size:12px;color:#6d28d9;line-height:1.5;margin-bottom:12px;">
+                Sends the final KPI score for a concluded enrollment month to the KPI reporting team. 
+                Preview and edit before sending.
+              </div>
+              <button onclick="kpiReportOpen()" style="padding:8px 18px;font-size:13px;font-weight:700;border:none;border-radius:6px;background:#7c3aed;color:#fff;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:7px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="2" stroke="#fff" stroke-width="2"/><path d="M2 7l10 7 10-7" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+                Send KPI Score Report
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- /KPI Score Report -->
+
       </div><!-- /adminContent -->
     </div>
   </div><!-- /panel-admin -->
@@ -15806,6 +15827,58 @@ function _emIframeBorder(el, hover) {
   </div>
 </div>
 <!-- /Concluded Months Confirmation Modal -->
+
+<!-- ══ KPI Score Report Modal ══════════════════════════════════════════ -->
+<div id="kpiReportModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9500;align-items:flex-start;justify-content:center;padding-top:40px;">
+  <div id="kpiReportBox" style="background:#fff;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.28);width:680px;max-width:95vw;min-width:380px;min-height:300px;resize:both;overflow:auto;display:flex;flex-direction:column;font-family:'72 Brand',Arial,sans-serif;">
+    <!-- Header / drag handle -->
+    <div id="kpiReportHd" style="background:#7c3aed;border-radius:10px 10px 0 0;padding:14px 18px 12px;display:flex;align-items:center;justify-content:space-between;cursor:move;user-select:none;flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:9px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="2" stroke="#fff" stroke-width="2"/><path d="M2 7l10 7 10-7" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+        <span style="font-size:14px;font-weight:700;color:#fff;">KPI Goal 2 Score Report</span>
+      </div>
+      <button onclick="kpiReportClose()" style="background:rgba(255,255,255,.2);border:none;color:#fff;cursor:pointer;font-size:18px;line-height:1;padding:2px 8px;border-radius:4px;">×</button>
+    </div>
+    <!-- Body -->
+    <div style="padding:18px 20px;display:flex;flex-direction:column;gap:14px;flex:1;overflow-y:auto;">
+      <!-- Month selector -->
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <label style="font-size:12px;font-weight:700;color:#374151;white-space:nowrap;">Enrollment Month:</label>
+        <select id="kpiMonthSel" onchange="kpiReportBuild()" style="font-size:13px;padding:5px 10px;border:1px solid #d1d5db;border-radius:5px;font-family:inherit;min-width:160px;">
+          <option value="">— Select —</option>
+        </select>
+        <span style="font-size:11px;color:#9ca3af;">Only concluded months are shown</span>
+      </div>
+      <!-- Recipients -->
+      <div style="display:grid;grid-template-columns:60px 1fr;gap:6px 10px;align-items:center;">
+        <label style="font-size:11px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.05em;">To</label>
+        <input id="kpiEmailTo" type="text" value="angeline.santos@sap.com" style="font-size:12px;padding:5px 8px;border:1px solid #d1d5db;border-radius:4px;font-family:inherit;">
+        <label style="font-size:11px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.05em;">CC</label>
+        <input id="kpiEmailCc" type="text" value="DL_5FD738F7DCCF46FDB7E8BBA0C4896D1D@global.corp.sap; DL_69C53D5F458D5D7850F10D0B@global.corp.sap" style="font-size:12px;padding:5px 8px;border:1px solid #d1d5db;border-radius:4px;font-family:inherit;">
+        <label style="font-size:11px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.05em;">Subject</label>
+        <input id="kpiEmailSubject" type="text" style="font-size:12px;padding:5px 8px;border:1px solid #d1d5db;border-radius:4px;font-family:inherit;">
+      </div>
+      <!-- Preview / edit -->
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:11px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.05em;">Email Body</span>
+          <span style="font-size:10px;color:#9ca3af;">Click inside to edit</span>
+        </div>
+        <div id="kpiEmailBody" contenteditable="true" style="border:1px solid #d1d5db;border-radius:6px;padding:14px 16px;min-height:300px;font-family:Arial,sans-serif;font-size:13px;line-height:1.6;color:#111;background:#fafafa;overflow-y:auto;max-height:50vh;outline:none;"></div>
+      </div>
+    </div>
+    <!-- Footer -->
+    <div style="padding:12px 20px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;gap:10px;flex-shrink:0;">
+      <div id="kpiSendStatus" style="flex:1;font-size:12px;color:#374151;align-self:center;"></div>
+      <button onclick="kpiReportClose()" style="padding:8px 18px;font-size:13px;border:1px solid #d1d5db;border-radius:6px;background:#fff;color:#374151;cursor:pointer;font-family:inherit;font-weight:600;">Cancel</button>
+      <button id="kpiSendBtn" onclick="kpiReportSend()" style="padding:8px 18px;font-size:13px;border:none;border-radius:6px;background:#7c3aed;color:#fff;cursor:pointer;font-family:inherit;font-weight:700;display:flex;align-items:center;gap:6px;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="2" stroke="#fff" stroke-width="2"/><path d="M2 7l10 7 10-7" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+        Send Email
+      </button>
+    </div>
+  </div>
+</div>
+<!-- /KPI Score Report Modal -->
 </body></html>`;
 
 
@@ -28152,6 +28225,234 @@ function utilConcludedResolve(includeConcluded) {
   if (modal) modal.style.display = 'none';
   utilEnrollScopeBuild(includeConcluded);
   utilStepGo(2);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   KPI GOAL 2 SCORE REPORT
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Drag logic for the report modal ── */
+(function(){
+  var modal, box, dragging=false, ox=0, oy=0, bx=0, by=0;
+  function init(){
+    modal = document.getElementById('kpiReportModal');
+    box   = document.getElementById('kpiReportBox');
+    var hd = document.getElementById('kpiReportHd');
+    if (!hd) return;
+    hd.addEventListener('mousedown', function(e){
+      dragging=true;
+      var r=box.getBoundingClientRect();
+      ox=e.clientX; oy=e.clientY; bx=r.left; by=r.top;
+      box.style.position='fixed'; box.style.margin='0';
+      e.preventDefault();
+    });
+    document.addEventListener('mousemove', function(e){
+      if (!dragging) return;
+      box.style.left = (bx + e.clientX - ox) + 'px';
+      box.style.top  = (by + e.clientY - oy) + 'px';
+    });
+    document.addEventListener('mouseup', function(){ dragging=false; });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+
+function kpiReportOpen() {
+  var modal = document.getElementById('kpiReportModal');
+  if (!modal) return;
+  /* Populate month dropdown with concluded months */
+  var sel = document.getElementById('kpiMonthSel');
+  if (sel) {
+    sel.innerHTML = '<option value="">— Select month —</option>';
+    var MONTHS = ['January','February','March','April','May','June',
+                  'July','August','September','October','November','December'];
+    var seen = {};
+    (splAllItems || []).forEach(function(item){
+      var f  = item.fields || {};
+      var em = (f['MMMEnrollment']  || '').trim();
+      var ey = String(f['EnrollmentYYYY'] || '').trim();
+      if (!em || !ey) return;
+      var key = em + '|' + ey;
+      if (seen[key]) return;
+      if (utilIsOngoing(em, ey)) return;   /* only concluded */
+      seen[key] = true;
+    });
+    /* Sort newest first */
+    var periods = Object.keys(seen).map(function(k){
+      var p=k.split('|'); return {m:p[0], y:parseInt(p[1])};
+    }).sort(function(a,b){ return b.y!==a.y ? b.y-a.y : MONTHS.indexOf(b.m)-MONTHS.indexOf(a.m); });
+    periods.forEach(function(p){
+      var o=document.createElement('option');
+      o.value=p.m+'|'+p.y; o.textContent=p.m+' '+p.y;
+      sel.appendChild(o);
+    });
+    if (periods.length) sel.value = periods[0].m+'|'+periods[0].y;
+  }
+  modal.style.display = 'flex';
+  kpiReportBuild();
+}
+
+function kpiReportClose() {
+  var modal = document.getElementById('kpiReportModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function kpiReportGetStats(enrollMonth, enrollYear) {
+  var ey = String(enrollYear);
+  var items = (splAllItems || []).filter(function(item){
+    var f = item.fields || {};
+    return String(f['MMMEnrollment']  || '').trim() === enrollMonth &&
+           String(f['EnrollmentYYYY'] || '').trim() === ey;
+  });
+  var kpiYes  = items.filter(function(i){ return String((i.fields||{})['field_24']||'').trim().toLowerCase() === 'yes'; });
+  var withUtil = kpiYes.filter(function(i){ return String((i.fields||{})['field_25']||'').trim().toLowerCase() === 'yes'; });
+  var noUtil   = kpiYes.filter(function(i){ return String((i.fields||{})['field_25']||'').trim().toLowerCase() !== 'yes'; });
+  /* Success rate = util growth / no-util-enrolled (clients who needed to gain) */
+  var totalActive = items.length;
+  var kpiTotal    = kpiYes.length;
+  var withUtilN   = withUtil.length;
+  var noUtilN     = noUtil.length;
+  /* Among no-util enrolled at start, how many gained util? */
+  /* Approximate: withUtil among KPI=Yes are the ones who gained util */
+  var successRate = noUtilN > 0 ? Math.round(withUtilN / (withUtilN + noUtilN) * 1000) / 10 : 0;
+  /* KPI Score month = enrollment month + 2 */
+  var MONTHS = ['January','February','March','April','May','June',
+                'July','August','September','October','November','December'];
+  var mi = MONTHS.indexOf(enrollMonth);
+  var kpiMi = (mi + 2) % 12;
+  var kpiYr = parseInt(ey) + Math.floor((mi + 2) / 12);
+  var kpiMonth = MONTHS[kpiMi] + (kpiYr !== parseInt(ey) ? ' ' + kpiYr : '');
+  return {
+    enrollMonth: enrollMonth, enrollYear: ey,
+    kpiMonth: kpiMonth,
+    totalActive: totalActive,
+    kpiTotal: kpiTotal,
+    withUtil: withUtilN,
+    noUtil: noUtilN,
+    successRate: successRate
+  };
+}
+
+function kpiReportBuild() {
+  var sel  = document.getElementById('kpiMonthSel');
+  if (!sel || !sel.value) return;
+  var parts = sel.value.split('|');
+  var em = parts[0], ey = parts[1];
+  var s = kpiReportGetStats(em, parseInt(ey));
+
+  /* Subject */
+  var subj = document.getElementById('kpiEmailSubject');
+  if (subj) subj.value = s.kpiMonth.toUpperCase() + ' | KPI Goal 2: Time to Value (Project Reach)';
+
+  /* Sender info */
+  var senderName  = (currentAccount && currentAccount.name)     ? currentAccount.name     : 'USD Team Lead';
+  var senderEmail = (currentAccount && currentAccount.username) ? currentAccount.username : '';
+
+  /* Build email HTML using string concatenation (no template literals) */
+  var body = ''
+    + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:13pt;color:#1a1a1a;max-width:600px;line-height:1.6;">'
+    + '<p>Hello Angeline,</p>'
+    + '<p>Here is the final score for <strong>Project REACH</strong> for the '
+    + '<strong>' + s.enrollMonth + ' ' + s.enrollYear + '</strong> enrollment period. '
+    + 'Please let me know if there\u2019s anything else you need from me. Thank you.</p>'
+    + '<br>'
+    + '<table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;font-family:Arial,sans-serif;">'
+    +   '<tr>'
+    +     '<td colspan="2" style="background:#4c1d95;color:#fff;font-size:13pt;font-weight:700;padding:10px 16px;border-radius:6px 6px 0 0;letter-spacing:.04em;">'
+    +       s.kpiMonth.toUpperCase() + ' KPI \u2014 GOAL 2: TIME TO VALUE'
+    +     '</td>'
+    +   '</tr>'
+    +   '<tr>'
+    +     '<td style="padding:12px 16px;background:#fafafa;border:1px solid #e5e7eb;border-top:none;width:50%;vertical-align:top;">'
+    +       '<div style="font-size:10pt;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Success Rate</div>'
+    +       '<div style="font-size:26pt;font-weight:800;color:#7c3aed;line-height:1;">' + s.successRate + '%</div>'
+    +     '</td>'
+    +     '<td style="padding:12px 16px;background:#fafafa;border:1px solid #e5e7eb;border-top:none;border-left:none;vertical-align:top;">'
+    +       '<table cellpadding="4" cellspacing="0" style="width:100%;font-family:Arial,sans-serif;font-size:11pt;">'
+    +         '<tr style="border-bottom:1px solid #e5e7eb;"><td style="color:#6b7280;font-weight:600;">Total KPI Added</td><td style="font-weight:800;color:#111;text-align:right;">' + s.kpiTotal + '</td></tr>'
+    +         '<tr style="border-bottom:1px solid #e5e7eb;"><td style="color:#16a34a;font-weight:600;">With Utilization</td><td style="font-weight:800;color:#16a34a;text-align:right;">' + s.withUtil + '</td></tr>'
+    +         '<tr><td style="color:#6b7280;font-weight:600;">No Utilization</td><td style="font-weight:800;color:#374151;text-align:right;">' + s.noUtil + '</td></tr>'
+    +       '</table>'
+    +     '</td>'
+    +   '</tr>'
+    +   '<tr>'
+    +     '<td colspan="2" style="padding:10px 16px;background:#f5f3ff;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 6px 6px;font-size:11pt;color:#4c1d95;font-weight:700;text-align:center;letter-spacing:.03em;">'
+    +       s.enrollMonth.toUpperCase() + ' ' + s.enrollYear + ' ENROLLMENT'
+    +     '</td>'
+    +   '</tr>'
+    + '</table>'
+    + '<br>'
+    + '<p style="margin:0;font-size:11pt;color:#4c1d95;font-weight:700;">Goal 2 \u2013 Time To Value</p>'
+    + '<p style="margin:2px 0 0;font-size:11pt;color:#374151;">CSR 3 (T2-L3), Supervisor (T3-L1) &amp; Manager (T3-L3)</p>'
+    + '<br><br>'
+    + '<p style="margin:0;font-size:11pt;">Best Regards,</p>'
+    + '<br>'
+    + '<p style="margin:0;font-size:11pt;font-weight:700;">' + escHtml(senderName) + '</p>'
+    + '<p style="margin:2px 0 0;font-size:10pt;color:#6b7280;">Sr. Supervisor, User Support Desk<br>Customer Services &amp; Delivery'
+    + (senderEmail ? '<br>E: ' + escHtml(senderEmail) : '') + '</p>'
+    + '<br>'
+    + '<p style="margin:0;font-size:8pt;color:#9ca3af;border-top:1px solid #e5e7eb;padding-top:8px;">'
+    + 'Pflichtangaben/Mandatory Disclosure Statement: <a href="http://www.sap.com/impressum" style="color:#9ca3af;">www.sap.com/impressum</a><br>'
+    + 'This e-mail may contain trade secrets or privileged, undisclosed, or otherwise confidential information. '
+    + 'If you have received this e-mail in error, you are hereby notified that any review, copying, or distribution of it is strictly prohibited. '
+    + 'Please inform us immediately and destroy the original transmittal. Thank you for your cooperation.</p>'
+    + '</div>';
+
+  var bodyEl = document.getElementById('kpiEmailBody');
+  if (bodyEl) bodyEl.innerHTML = body;
+  var stat = document.getElementById('kpiSendStatus');
+  if (stat) stat.textContent = '';
+}
+
+async function kpiReportSend() {
+  var toRaw  = (document.getElementById('kpiEmailTo')      || {}).value || '';
+  var ccRaw  = (document.getElementById('kpiEmailCc')      || {}).value || '';
+  var subj   = (document.getElementById('kpiEmailSubject') || {}).value || '';
+  var bodyEl = document.getElementById('kpiEmailBody');
+  var bodyHtml = bodyEl ? bodyEl.innerHTML : '';
+  var stat   = document.getElementById('kpiSendStatus');
+  var btn    = document.getElementById('kpiSendBtn');
+  if (!toRaw.trim()) { if(stat) stat.textContent = 'Please enter a TO address.'; return; }
+  if (!subj.trim())  { if(stat) stat.textContent = 'Please enter a subject.'; return; }
+  if (btn) { btn.disabled=true; btn.innerHTML='<span class="spinner" style="width:12px;height:12px;border-width:2px;border-top-color:#fff;flex-shrink:0;"></span>&nbsp;Sending\u2026'; }
+  if (stat) stat.textContent = 'Sending\u2026';
+  function toRecips(raw) {
+    return raw.split(/[;,]/).map(function(a){ return a.trim(); }).filter(Boolean).map(function(a){ return {emailAddress:{address:a}}; });
+  }
+  var message = {
+    subject: subj,
+    body: { contentType:'HTML', content: bodyHtml },
+    toRecipients: toRecips(toRaw),
+    ccRecipients: toRecips(ccRaw)
+  };
+  try {
+    var instance  = await msalReady;
+    var mailScopes = ['https://graph.microsoft.com/Mail.Send'];
+    var mailToken;
+    try { mailToken = (await instance.acquireTokenSilent({ scopes:mailScopes, account:currentAccount })).accessToken; }
+    catch(_) { mailToken = (await instance.acquireTokenPopup({ scopes:mailScopes, account:currentAccount })).accessToken; }
+    /* Send from /me/sendMail (user's own email) */
+    var resp = await fetch('https://graph.microsoft.com/v1.0/me/sendMail', {
+      method:'POST',
+      headers:{'Authorization':'Bearer '+mailToken,'Content-Type':'application/json'},
+      body: JSON.stringify({message: message, saveToSentItems: true})
+    });
+    if (resp.ok || resp.status === 202) {
+      if (stat) stat.innerHTML = '<span style="color:#16a34a;font-weight:700;">\u2713 Email sent successfully.</span>';
+      if (btn) btn.disabled = false;
+      btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="2" stroke="#fff" stroke-width="2"/><path d="M2 7l10 7 10-7" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg> Send Email';
+      addLog('KPI Score Report sent: ' + subj, 'success');
+    } else {
+      var err = await resp.json().catch(function(){ return {}; });
+      var msg = (err.error && err.error.message) ? err.error.message : 'HTTP ' + resp.status;
+      if (stat) stat.innerHTML = '<span style="color:#dc2626;">\u2717 Send failed: ' + msg + '</span>';
+      if (btn) { btn.disabled=false; btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="2" stroke="#fff" stroke-width="2"/><path d="M2 7l10 7 10-7" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg> Send Email'; }
+    }
+  } catch(e) {
+    if (stat) stat.innerHTML = '<span style="color:#dc2626;">\u2717 Error: ' + (e.message||String(e)) + '</span>';
+    if (btn) { btn.disabled=false; btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="2" stroke="#fff" stroke-width="2"/><path d="M2 7l10 7 10-7" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg> Send Email'; }
+  }
 }
 
 </script>

@@ -7696,7 +7696,7 @@ nrosati@jparks.com - No longer in the ro…</span><span class="notes-icon-btn" t
 
 
 <!-- ── CLIENT INFO SIDE PANEL (shown alongside email composer modals) ─── -->
-<div id="clientInfoPanel" style="display: none; position: fixed; top: 50%; left: calc(50% + 14px + min(390px, 44vw)); transform: translateY(-50%); width: 260px; max-height: 80vh; border-radius: 8px; box-shadow: rgba(0, 0, 0, 0.28) 0px 8px 40px; z-index: 9400; font-family: &quot;72 Brand&quot;, Arial, sans-serif; background: rgb(255, 255, 255); flex-direction: column; overflow: hidden;">
+<div id="clientInfoPanel" style="display: none; position: fixed; top: 50%; left: calc(50% + 14px + min(390px, 44vw)); transform: translateY(-50%); width: 260px; max-height: 80vh; border-radius: 8px; box-shadow: rgba(0, 0, 0, 0.28) 0px 8px 40px; z-index: 9500; font-family: &quot;72 Brand&quot;, Arial, sans-serif; background: rgb(255, 255, 255); flex-direction: column; overflow: hidden;">
   <!-- Header — drag handle -->
   <div style="padding:12px 16px 10px;background:#0070f2;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;cursor:move;user-select:none;-webkit-user-select:none;">
     <div style="display:flex;align-items:center;gap:8px;">
@@ -7735,13 +7735,13 @@ nrosati@jparks.com - No longer in the ro…</span><span class="notes-icon-btn" t
 </div>
 
 <!-- ── CLIENT INFO – REOPEN BUTTON (shown when panel is dismissed while modal is open) ── -->
-<button id="cipReopenBtn" onclick="showClientInfoPanel(_cipActiveItem,_cipCompact)" style="display:none;position:fixed;top:50%;left:calc(50% + min(390px,44vw) + 14px);transform:translateY(-50%);z-index:9400;background:#0070f2;color:#fff;border:none;cursor:pointer;border-radius:6px;padding:9px 14px;font-size:12px;font-weight:700;font-family:'72 Brand',Arial,sans-serif;align-items:center;gap:6px;box-shadow:0 4px 16px rgba(0,112,242,.35);white-space:nowrap;" title="Reopen client details">
+<button id="cipReopenBtn" onclick="showClientInfoPanel(_cipActiveItem,_cipCompact)" style="display:none;position:fixed;top:50%;left:calc(50% + min(390px,44vw) + 14px);transform:translateY(-50%);z-index:9500;background:#0070f2;color:#fff;border:none;cursor:pointer;border-radius:6px;padding:9px 14px;font-size:12px;font-weight:700;font-family:'72 Brand',Arial,sans-serif;align-items:center;gap:6px;box-shadow:0 4px 16px rgba(0,112,242,.35);white-space:nowrap;" title="Reopen client details">
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#fff" stroke-width="2"></circle><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#fff" stroke-width="2" stroke-linecap="round"></path></svg>
   Client Details
 </button>
 
 <!-- OVERALL NOTES CHEAT SHEET POPUP -->
-<div id="notesCheatPanel" style="display:none;position:fixed;z-index:9300;width:230px;max-height:300px;
+<div id="notesCheatPanel" style="display:none;position:fixed;z-index:9500;width:230px;max-height:300px;
   border-radius:8px;box-shadow:0 4px 24px rgba(0,0,0,.22);background:#fff;
   flex-direction:column;overflow:hidden;font-family:'72 Brand',Arial,sans-serif;">
   <div id="ncpHeader" style="padding:10px 14px 8px;background:#f59e0b;border-radius:8px 8px 0 0;
@@ -7762,7 +7762,7 @@ nrosati@jparks.com - No longer in the ro…</span><span class="notes-icon-btn" t
     font-size:12px;line-height:1.55;color:#374151;"></div>
 </div>
 
-<button id="ncpReopenBtn" onclick="showNotesCheatPanel(_ncpActiveItem)" style="display:none;position:fixed;z-index:9400;background:#f59e0b;color:#fff;border:none;
+<button id="ncpReopenBtn" onclick="showNotesCheatPanel(_ncpActiveItem)" style="display:none;position:fixed;z-index:9500;background:#f59e0b;color:#fff;border:none;
   cursor:pointer;border-radius:6px;padding:8px 13px;font-size:12px;font-weight:700;
   font-family:'72 Brand',Arial,sans-serif;align-items:center;gap:6px;
   box-shadow:0 4px 16px rgba(245,158,11,.38);white-space:nowrap;" title="Reopen overall notes">
@@ -11208,7 +11208,11 @@ async function previewEnrollment() {
       /* Store enrollment period label so we can write it to Overall Remarks */
       var _eM = (f['MMMEnrollment']  || '').trim();
       var _eY = String(f['EnrollmentYYYY'] || '').trim();
-      existingIds[id] = (_eM && _eY) ? (_eM + ' ' + _eY) : (_eM || _eY || '');
+      var _periodLbl = (_eM && _eY) ? (_eM + ' ' + _eY) : (_eM || _eY || '');
+      existingIds[id] = _periodLbl;
+      /* Also index by CMC Entity (field_10) when not blank — handles renames */
+      var _cmc = (f['field_10'] || '').trim().toLowerCase();
+      if (_cmc) existingIds['cmc:' + _cmc] = _periodLbl;
     }
   });
 
@@ -11242,7 +11246,8 @@ async function previewEnrollment() {
 
   // Tag each eligible client as new, duplicate, or recently-excluded
   dupCheckResults = eligibleClients.map(function(c) {
-    var _lcId = c.acctId ? c.acctId.toLowerCase() : null;
+    var _lcId  = c.acctId    ? c.acctId.toLowerCase()    : null;
+    var _lcCmc = c.cmcEntity ? c.cmcEntity.toLowerCase() : null;
     // ── 12-month re-enrollment exclusion ─────────────────────────────────────
     if (_lcId && Object.prototype.hasOwnProperty.call(recentExcludeIds, _lcId)) {
       var _re = recentExcludeIds[_lcId];
@@ -11252,8 +11257,12 @@ async function previewEnrollment() {
         dupRemark: 'Active within 12 months (' + _re.activeMonth + ' ' + _re.activeYear + ')'
       });
     }
-    var isDup      = !!(_lcId && Object.prototype.hasOwnProperty.call(existingIds, _lcId));
-    var enrollLabel = isDup ? existingIds[_lcId] : '';
+    /* Dedup by 18-digit ID first, then by CMC Entity key (handles renames) */
+    var isDup      = !!(_lcId && Object.prototype.hasOwnProperty.call(existingIds, _lcId))
+                  || !!(_lcCmc && Object.prototype.hasOwnProperty.call(existingIds, 'cmc:' + _lcCmc));
+    var enrollLabel = isDup
+      ? (existingIds[_lcId] || existingIds['cmc:' + _lcCmc] || '')
+      : '';
     var dupRemark  = isDup
       ? ('Enrolled from previous month' + (enrollLabel ? ' (' + enrollLabel + ')' : ''))
       : '';
@@ -19823,7 +19832,7 @@ function raSendFyi2aoEmail() {
 
   var modal = _g('fyi2aoEmailModal');
   if (modal) modal.style.display = 'flex';
-  showClientInfoPanel(items[0], true);
+  showClientInfoPanel(items[0], true, items);
   showNotesCheatPanel(items[0]);
 }
 
@@ -20213,7 +20222,7 @@ function raSendFyifuEmail() {
 
   var modal = _g('fyifuEmailModal');
   if (modal) modal.style.display = 'flex';
-  showClientInfoPanel(items[0], true);
+  showClientInfoPanel(items[0], true, items);
   showNotesCheatPanel(items[0]);
 }
 
@@ -20763,7 +20772,7 @@ function raSendNrfyiEmail() {
 
   var modal = _g('nrfyiEmailModal');
   if (modal) { modal.style.display = 'flex'; }
-  showClientInfoPanel(items[0], true);
+  showClientInfoPanel(items[0], true, items);
   showNotesCheatPanel(items[0]);
 }
 
@@ -21263,7 +21272,7 @@ function raCloseEmailModal() {
 var _cipActiveItem = null;
 var _cipCompact    = false;
 
-function showClientInfoPanel(item, compact) {
+function showClientInfoPanel(item, compact, allItems) {
   _cipActiveItem = item  || null;
   _cipCompact    = compact ? true : false;
 
@@ -21279,7 +21288,24 @@ function showClientInfoPanel(item, compact) {
   };
   _set('cip_title',   f['Title']);
   _set('cip_field1',  f['field_1']);
-  _set('cip_field10', f['field_10']);
+  /* CMC Entity — stack all clients' values vertically when multiple items */
+  var _cmcEl = document.getElementById('cip_field10');
+  if (_cmcEl) {
+    var _cmcItems = (allItems && allItems.length > 1) ? allItems : [item];
+    var _cmcParts = _cmcItems.map(function(it) {
+      return ((it && it.fields && it.fields['field_10']) || '').trim();
+    }).filter(function(v){ return v; });
+    if (_cmcParts.length === 0) {
+      _cmcEl.textContent = '—';
+    } else if (_cmcParts.length === 1) {
+      _cmcEl.textContent = _cmcParts[0];
+    } else {
+      _cmcEl.innerHTML = _cmcParts.map(function(v, i) {
+        return '<div style="line-height:1.5;' + (i > 0 ? 'margin-top:3px;border-top:1px solid #e4e7ec;padding-top:3px;' : '') + '">'
+          + v.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>';
+      }).join('');
+    }
+  }
   _set('cip_field11', f['field_11']);
   _set('cip_field13', f['field_13']);
 
@@ -23193,21 +23219,31 @@ async function utilProcessFiles() {
     usdStatusByName[name.toLowerCase()] = status;
   });
 
-  /* ── Phase 2: Build case rows index by account name ────────────────────
-     Date filtering is applied per-client in the main loop using each client's
-     own enrollment period (MMMEnrollment → +2 months).  Rows without a
-     parseable date are counted unconditionally (fail-open).                  */
-  var caseRowsByName = {};
+  /* ── Phase 2: Build case rows index by BOTH CMC Entity (primary) and
+     Account Name (fallback). CMC Entity is used when both the CSV row and
+     the SP item have a non-blank value — making the lookup resilient to
+     account renames. Rows without CMC Entity fall back to name matching.   */
+  var caseRowsByName = {};   /* Account Name (lower) → rows */
+  var caseRowsByCMC  = {};   /* CMC Entity  (lower) → rows */
   var _caseTotalRows = 0;
   caseRows.forEach(function(row) {
     if (isFooterRow(row)) return;
-    var k = (row['Account Name'] || row['Account: Account Name'] || row['AccountName'] || '').trim().toLowerCase();
+    var k   = (row['Account Name'] || row['Account: Account Name'] || row['AccountName'] || '').trim().toLowerCase();
+    var cmc = (row['CMC Entity (Production)'] || row['Account: CMC Entity (Production)'] || row['field_10'] || '').trim().toLowerCase();
     if (!k) return;
     if (!caseRowsByName[k]) caseRowsByName[k] = [];
     caseRowsByName[k].push(row);
+    if (cmc) {
+      if (!caseRowsByCMC[cmc]) caseRowsByCMC[cmc] = { rows: [], csvName: '' };
+      caseRowsByCMC[cmc].rows.push(row);
+      /* Store the first non-blank account name seen for this CMC (for rename detection) */
+      if (!caseRowsByCMC[cmc].csvName) caseRowsByCMC[cmc].csvName = (row['Account Name'] || row['Account: Account Name'] || row['AccountName'] || '').trim();
+    }
     _caseTotalRows++;
   });
-  addLog('Case file: ' + _caseTotalRows + ' rows indexed across ' + Object.keys(caseRowsByName).length + ' accounts.', 'info');
+  addLog('Case file: ' + _caseTotalRows + ' rows indexed — '
+    + Object.keys(caseRowsByName).length + ' by name, '
+    + Object.keys(caseRowsByCMC).length  + ' by CMC Entity.', 'info');
 
   /* ── KB files are parsed in Phase B (inside try, after the main loop).
      This means adoption & case processing starts immediately and shows
@@ -23297,6 +23333,7 @@ async function utilProcessFiles() {
     })();
 
     var _writeQueue = [];
+  window._utilRenameQueue = {};  /* reset per wizard run */
 
     for (var key in allNames) {
       /* ── Update live progress on each iteration ── */
@@ -23346,9 +23383,41 @@ async function utilProcessFiles() {
         });
       }
 
+      /* ── Case lookup: prefer CMC Entity (field_10) when both sides have it,
+         otherwise fall back to Account Name. This handles account renames.  */
+      var _spCMC       = ((spItem && spItem.fields) ? (spItem.fields['field_10'] || '') : '').trim().toLowerCase();
+      var _csvCMCEntry = _spCMC ? caseRowsByCMC[_spCMC] : null;
+      var _caseRowsSrc = (_csvCMCEntry) ? _csvCMCEntry.rows : caseRowsByName[key];
+      /* ── Rename detection: CMC matched but names differ (ongoing clients only) */
+      if (_csvCMCEntry && _csvCMCEntry.csvName) {
+        var _csvAcctName = _csvCMCEntry.csvName.trim();
+        var _spAcctName  = (spItem.fields['Title'] || '').trim();
+        var _isOngoingForRename = utilIsOngoing(
+          (spItem.fields['MMMEnrollment']  || '').trim(),
+          String(spItem.fields['EnrollmentYYYY'] || '').trim()
+        );
+        if (_isOngoingForRename && _csvAcctName && _csvAcctName !== _spAcctName) {
+          /* Check if this rename INFO note was already logged */
+          var _existNotes = (spItem.fields['field_37'] || '').trim();
+          var _renameTag  = 'Account Name changed from "' + _spAcctName + '" to "' + _csvAcctName + '"';
+          if (_existNotes.indexOf(_renameTag) === -1) {
+            var _renameDate = new Date().toLocaleDateString('en-US', { month:'2-digit', day:'2-digit', year:'numeric' });
+            var _renameLine = '[INFO] (' + _renameDate + ') ' + _renameTag;
+            /* Queue Title + notes update (merged into the combined patch below) */
+            if (!window._utilRenameQueue) window._utilRenameQueue = {};
+            window._utilRenameQueue[spItem.id] = {
+              newTitle: _csvAcctName,
+              noteLine: _renameLine,
+              existingNotes: _existNotes
+            };
+            addLog('Rename detected: "' + _spAcctName + '" → "' + _csvAcctName + '"', 'info');
+          }
+        }
+      }
+
       /* Per-client case date filter using this client's own enrollment period */
       var cCount = 0;
-      if (caseRowsByName[key]) {
+      if (_caseRowsSrc) {
         var _itemF       = spItem ? (spItem.fields || {}) : {};
         var _itemEnrollM = (_itemF['MMMEnrollment']  || '').trim();
         var _itemEnrollY = String(_itemF['EnrollmentYYYY'] || '').trim();
@@ -23360,7 +23429,7 @@ async function utilProcessFiles() {
           var _iEndY        = _iStartY + Math.floor(_iEndIdx / 12);
           var _iPeriodStart = new Date(_iStartY, _iEnrollIdx, 1);
           var _iPeriodEnd   = new Date(_iEndY, _iEndM + 1, 0, 23, 59, 59, 999);
-          caseRowsByName[key].forEach(function(row) {
+          _caseRowsSrc.forEach(function(row) {
             var _odStr = (
               row['Opened Date']      ||
               row['Date/Time Opened'] ||
@@ -23417,6 +23486,16 @@ async function utilProcessFiles() {
          Merging all field writes into a single PATCH per record eliminates the
          4–5 sequential API round-trips that made the wizard slow.              */
       var _combinedPatch = {};
+
+      /* ── Apply rename patch (Title + INFO note) for ongoing clients only ── */
+      if (window._utilRenameQueue && spItem && window._utilRenameQueue[spItem.id]) {
+        var _rq = window._utilRenameQueue[spItem.id];
+        _combinedPatch['Title']    = _rq.newTitle;
+        _combinedPatch['field_37'] = _rq.existingNotes
+          ? _rq.existingNotes + '\n\n' + _rq.noteLine
+          : _rq.noteLine;
+        delete window._utilRenameQueue[spItem.id];
+      }
 
       var _kbFilesProvided = utilKbUploadDone.some(function(v){ return v; });
 
@@ -27820,14 +27899,23 @@ function csvRestoreLoad(file) {
       return '';
     }
 
-    /* ── Index cases by account name (lower) ── */
+    /* ── Index cases by CMC Entity (primary) AND Account Name (fallback) ── */
     var casesByName = {};
+    var casesByCMC  = {};
     rows.forEach(function(row) {
-      var acct = getCol(row, ['accountname','accountaccountname','title']).toLowerCase();
+      var acct    = getCol(row, ['accountname','accountaccountname','title']);
+      var cmc     = getCol(row, ['cmcentityproduction','accountcmcentityproduction','field10']);
       var dateStr = getCol(row, ['openeddate','datetimeopened','caseopendate','opendate','openeddate']);
-      if (!acct) return;
-      if (!casesByName[acct]) casesByName[acct] = [];
-      casesByName[acct].push({ dateStr: dateStr });
+      var acctLow = acct.toLowerCase();
+      var cmcLow  = cmc.toLowerCase();
+      if (!acctLow) return;
+      if (!casesByName[acctLow]) casesByName[acctLow] = [];
+      casesByName[acctLow].push({ dateStr: dateStr });
+      if (cmcLow) {
+        if (!casesByCMC[cmcLow]) casesByCMC[cmcLow] = { rows: [], csvName: '' };
+        casesByCMC[cmcLow].rows.push({ dateStr: dateStr });
+        if (!casesByCMC[cmcLow].csvName) casesByCMC[cmcLow].csvName = acct;
+      }
     });
 
     var totalCaseRows = rows.length;
@@ -27845,9 +27933,31 @@ function csvRestoreLoad(file) {
       var ey    = String(f['EnrollmentYYYY'] || '').trim();
       if (!name || !em || !ey) return;
 
-      var nameLow = name.toLowerCase();
-      var casesForClient = casesByName[nameLow];
+      var nameLow     = name.toLowerCase();
+      var spCMC       = ((item.fields && item.fields['field_10']) || '').trim().toLowerCase();
+      var cmcEntry    = spCMC ? casesByCMC[spCMC] : null;
+      var casesForClient = cmcEntry ? cmcEntry.rows : casesByName[nameLow];
       if (!casesForClient) return;   /* NOT in file — SKIP, preserve existing value */
+
+      /* Rename detection for ongoing clients */
+      if (cmcEntry && cmcEntry.csvName) {
+        var _csvN = cmcEntry.csvName.trim();
+        var _spN  = name;
+        var _ongoing = utilIsOngoing(
+          (item.fields['MMMEnrollment']  || '').trim(),
+          String(item.fields['EnrollmentYYYY'] || '').trim()
+        );
+        if (_ongoing && _csvN && _csvN !== _spN) {
+          var _exN  = (item.fields['field_37'] || '').trim();
+          var _rTag = 'Account Name changed from "' + _spN + '" to "' + _csvN + '"';
+          if (_exN.indexOf(_rTag) === -1) {
+            var _rd  = new Date().toLocaleDateString('en-US', { month:'2-digit', day:'2-digit', year:'numeric' });
+            r.renameTitle = _csvN;
+            r.renameNote  = '[INFO] (' + _rd + ') ' + _rTag;
+            r.existNotes  = _exN;
+          }
+        }
+      }
 
       /* Compute enrollment window (same logic as wizard) */
       var enrollIdx = LD_M.indexOf(em);
@@ -27861,7 +27971,7 @@ function csvRestoreLoad(file) {
 
       /* Count cases within window */
       var cCount = 0;
-      casesForClient.forEach(function(c) {
+      (casesForClient || []).forEach(function(c) {
         if (!c.dateStr) { cCount++; return; } /* no date → count (fail-open) */
         var d = new Date(c.dateStr);
         if (isNaN(d)) { cCount++; return; }   /* unparseable → count */
@@ -27950,11 +28060,17 @@ async function csvRestoreExecute() {
     async function _runBatchR(items) {
       await Promise.all(items.map(async function(r) {
         /* Write CASE count (computed from file) + re-derived Utilization.
-           KB is NOT written — it is preserved as-is in SP. */
+           KB is NOT written. Add Title + INFO note for renames (ongoing only). */
         var patch = {
           'field_27': String(r.caseN),
           'field_25': r.newUtil
         };
+        if (r.renameTitle) {
+          patch['Title']    = r.renameTitle;
+          patch['field_37'] = r.existNotes
+            ? r.existNotes + '\n\n' + r.renameNote
+            : r.renameNote;
+        }
         try {
           await utilPatchSpItem(r.spItem.id, patch, token);
           /* Update in-memory */

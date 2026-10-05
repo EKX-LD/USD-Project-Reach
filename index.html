@@ -8116,14 +8116,23 @@ nrosati@jparks.com - No longer in the ro…</span><span class="notes-icon-btn" t
 // CONFIGURATION
 // App (client) ID  : 13cd2d16-e226-44ab-af98-6b605fc4bf48
 // Tenant ID        : 42f7676c-f455-423c-82f6-dc2d99791af7
-// Auth flow        : Authorization Code + PKCE (popup, redirectUri = window.location.origin)
+// Auth flow        : Authorization Code + PKCE (popup, redirectUri = full page URL)
 // ================================================================
 const MSAL_CONFIG = {
   auth: {
     clientId:         '13cd2d16-e226-44ab-af98-6b605fc4bf48',
     authority:        'https://login.microsoftonline.com/42f7676c-f455-423c-82f6-dc2d99791af7',
     knownAuthorities: ['login.microsoftonline.com'],
-    redirectUri:      (function(){ var o = window.location.origin; return (o && /^https?:\/\//.test(o)) ? o : 'https://ekx-ld.github.io/USD-Project-Reach/'; })()
+    redirectUri:      (function(){
+                        /* Use the full current URL (no hash/query) so Azure AD redirects
+                           the auth popup back to the correct page path, not the root domain.
+                           e.g. https://ekx-ld.github.io/USD-Project-Reach/  (correct)
+                           vs   https://ekx-ld.github.io/                     (404) */
+                        var href = window.location.href.split('#')[0].split('?')[0];
+                        return (href && /^https?:\/\//.test(href))
+                          ? href
+                          : 'https://ekx-ld.github.io/USD-Project-Reach/';
+                      })()
   },
   cache: { cacheLocation: 'localStorage', storeAuthStateInCookie: true },
   system: { loggerOptions: { loggerCallback: (l,m) => console.debug('[MSAL]',m), piiLoggingEnabled: false } }

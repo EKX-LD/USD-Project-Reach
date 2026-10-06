@@ -24807,7 +24807,13 @@ function smBuildDashboard() {
       withUtil=_ov.withUtil; deactivatedCount=_ov.deactivatedCount;
       if (_ov.totalActiveInPeriod) items._ovTotal=_ov.totalActiveInPeriod;
     }
-    var successRate=noUtilBase>0?(withUtil/noUtilBase*100):null;
+    /* July 2026 onwards: Success Rate = Util Growth / REACH KPI Added (withUtil / kpiYes)
+       Before July 2026:  Success Rate = Util Growth / No-Util Enrolled (withUtil / noUtilBase) */
+    var _smEy=parseInt(g.ey,10);
+    var _smMi=MONTHS.indexOf(g.em);
+    var _useNewFormula=(_smEy>2026)||((_smEy===2026)&&(_smMi>=MONTHS.indexOf('July')));
+    var _smDenom=_useNewFormula?kpiYes:noUtilBase;
+    var successRate=_smDenom>0?(withUtil/_smDenom*100):null;
     var goalAtt    =successRate!==null?(successRate/20):null;
     var enrollMonthIdx=MONTHS.indexOf(g.em)>=0?MONTHS.indexOf(g.em):0;
     var sortVal=parseInt(g.ey,10)*100+enrollMonthIdx;
@@ -28273,10 +28279,17 @@ function kpiReportGetStats(enrollMonth, enrollYear) {
     if (kpi === 'yes') { kpiTotal++; if (util === 'Yes') withUtilN++; }
   });
 
-  /* noUtilBase = everyone who enrolled needing util (same denominator as dashboard) */
+  /* noUtilBase = everyone who enrolled needing util */
   var noUtilBase  = kpiTotal + deactivatedCount;
   var noUtilN     = kpiTotal - withUtilN;   /* current KPI=Yes clients still without util */
-  var successRate = noUtilBase > 0 ? Math.round(withUtilN / noUtilBase * 1000) / 10 : 0;
+  /* July 2026 onwards: use withUtil / kpiTotal; before: use withUtil / noUtilBase */
+  var _MONTHS_SR  = ['January','February','March','April','May','June',
+                     'July','August','September','October','November','December'];
+  var _eyInt      = parseInt(enrollYear, 10);
+  var _emIdx      = _MONTHS_SR.indexOf(enrollMonth);
+  var _newFormula = (_eyInt > 2026) || (_eyInt === 2026 && _emIdx >= _MONTHS_SR.indexOf('July'));
+  var _denom      = _newFormula ? kpiTotal : noUtilBase;
+  var successRate = _denom > 0 ? Math.round(withUtilN / _denom * 1000) / 10 : 0;
 
   /* KPI Score month = enrollment month + 2 */
   var MONTHS = ['January','February','March','April','May','June',

@@ -15828,57 +15828,6 @@ function _emIframeBorder(el, hover) {
 </div>
 <!-- /Concluded Months Confirmation Modal -->
 
-<!-- ══ KPI Score Report Modal ══════════════════════════════════════════ -->
-<div id="kpiReportModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9500;align-items:flex-start;justify-content:center;padding-top:40px;">
-  <div id="kpiReportBox" style="background:#fff;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.28);width:680px;max-width:95vw;min-width:380px;min-height:300px;resize:both;overflow:auto;display:flex;flex-direction:column;font-family:'72 Brand',Arial,sans-serif;">
-    <!-- Header / drag handle -->
-    <div id="kpiReportHd" style="background:#7c3aed;border-radius:10px 10px 0 0;padding:14px 18px 12px;display:flex;align-items:center;justify-content:space-between;cursor:move;user-select:none;flex-shrink:0;">
-      <div style="display:flex;align-items:center;gap:9px;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="2" stroke="#fff" stroke-width="2"/><path d="M2 7l10 7 10-7" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
-        <span style="font-size:14px;font-weight:700;color:#fff;">KPI Goal 2 Score Report</span>
-      </div>
-      <button onclick="kpiReportClose()" style="background:rgba(255,255,255,.2);border:none;color:#fff;cursor:pointer;font-size:18px;line-height:1;padding:2px 8px;border-radius:4px;">×</button>
-    </div>
-    <!-- Body -->
-    <div style="padding:18px 20px;display:flex;flex-direction:column;gap:14px;flex:1;overflow-y:auto;">
-      <!-- Month selector -->
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-        <label style="font-size:12px;font-weight:700;color:#374151;white-space:nowrap;">Enrollment Month:</label>
-        <select id="kpiMonthSel" onchange="kpiReportBuild()" style="font-size:13px;padding:5px 10px;border:1px solid #d1d5db;border-radius:5px;font-family:inherit;min-width:160px;">
-          <option value="">— Select —</option>
-        </select>
-        <span style="font-size:11px;color:#9ca3af;">Only concluded months are shown</span>
-      </div>
-      <!-- Recipients -->
-      <div style="display:grid;grid-template-columns:60px 1fr;gap:6px 10px;align-items:center;">
-        <label style="font-size:11px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.05em;">To</label>
-        <input id="kpiEmailTo" type="text" value="angeline.santos@sap.com" style="font-size:12px;padding:5px 8px;border:1px solid #d1d5db;border-radius:4px;font-family:inherit;">
-        <label style="font-size:11px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.05em;">CC</label>
-        <input id="kpiEmailCc" type="text" value="DL_5FD738F7DCCF46FDB7E8BBA0C4896D1D@global.corp.sap; DL_69C53D5F458D5D7850F10D0B@global.corp.sap" style="font-size:12px;padding:5px 8px;border:1px solid #d1d5db;border-radius:4px;font-family:inherit;">
-        <label style="font-size:11px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.05em;">Subject</label>
-        <input id="kpiEmailSubject" type="text" style="font-size:12px;padding:5px 8px;border:1px solid #d1d5db;border-radius:4px;font-family:inherit;">
-      </div>
-      <!-- Preview / edit -->
-      <div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-          <span style="font-size:11px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.05em;">Email Body</span>
-          <span style="font-size:10px;color:#9ca3af;">Click inside to edit</span>
-        </div>
-        <div id="kpiEmailBody" contenteditable="true" style="border:1px solid #d1d5db;border-radius:6px;padding:14px 16px;min-height:300px;font-family:Arial,sans-serif;font-size:13px;line-height:1.6;color:#111;background:#fafafa;overflow-y:auto;max-height:50vh;outline:none;"></div>
-      </div>
-    </div>
-    <!-- Footer -->
-    <div style="padding:12px 20px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;gap:10px;flex-shrink:0;">
-      <div id="kpiSendStatus" style="flex:1;font-size:12px;color:#374151;align-self:center;"></div>
-      <button onclick="kpiReportClose()" style="padding:8px 18px;font-size:13px;border:1px solid #d1d5db;border-radius:6px;background:#fff;color:#374151;cursor:pointer;font-family:inherit;font-weight:600;">Cancel</button>
-      <button id="kpiSendBtn" onclick="kpiReportSend()" style="padding:8px 18px;font-size:13px;border:none;border-radius:6px;background:#7c3aed;color:#fff;cursor:pointer;font-family:inherit;font-weight:700;display:flex;align-items:center;gap:6px;">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="2" stroke="#fff" stroke-width="2"/><path d="M2 7l10 7 10-7" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
-        Send Email
-      </button>
-    </div>
-  </div>
-</div>
-<!-- /KPI Score Report Modal -->
 </body></html>`;
 
 
@@ -28456,6 +28405,58 @@ async function kpiReportSend() {
 }
 
 </script>
+
+<!-- ══ KPI Score Report Modal ══════════════════════════════════════════ -->
+<div id="kpiReportModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9500;align-items:flex-start;justify-content:center;padding-top:40px;">
+  <div id="kpiReportBox" style="background:#fff;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.28);width:680px;max-width:95vw;min-width:380px;min-height:300px;resize:both;overflow:auto;display:flex;flex-direction:column;font-family:'72 Brand',Arial,sans-serif;">
+    <!-- Header / drag handle -->
+    <div id="kpiReportHd" style="background:#7c3aed;border-radius:10px 10px 0 0;padding:14px 18px 12px;display:flex;align-items:center;justify-content:space-between;cursor:move;user-select:none;flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:9px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="2" stroke="#fff" stroke-width="2"/><path d="M2 7l10 7 10-7" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+        <span style="font-size:14px;font-weight:700;color:#fff;">KPI Goal 2 Score Report</span>
+      </div>
+      <button onclick="kpiReportClose()" style="background:rgba(255,255,255,.2);border:none;color:#fff;cursor:pointer;font-size:18px;line-height:1;padding:2px 8px;border-radius:4px;">×</button>
+    </div>
+    <!-- Body -->
+    <div style="padding:18px 20px;display:flex;flex-direction:column;gap:14px;flex:1;overflow-y:auto;">
+      <!-- Month selector -->
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <label style="font-size:12px;font-weight:700;color:#374151;white-space:nowrap;">Enrollment Month:</label>
+        <select id="kpiMonthSel" onchange="kpiReportBuild()" style="font-size:13px;padding:5px 10px;border:1px solid #d1d5db;border-radius:5px;font-family:inherit;min-width:160px;">
+          <option value="">— Select —</option>
+        </select>
+        <span style="font-size:11px;color:#9ca3af;">Only concluded months are shown</span>
+      </div>
+      <!-- Recipients -->
+      <div style="display:grid;grid-template-columns:60px 1fr;gap:6px 10px;align-items:center;">
+        <label style="font-size:11px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.05em;">To</label>
+        <input id="kpiEmailTo" type="text" value="angeline.santos@sap.com" style="font-size:12px;padding:5px 8px;border:1px solid #d1d5db;border-radius:4px;font-family:inherit;">
+        <label style="font-size:11px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.05em;">CC</label>
+        <input id="kpiEmailCc" type="text" value="DL_5FD738F7DCCF46FDB7E8BBA0C4896D1D@global.corp.sap; DL_69C53D5F458D5D7850F10D0B@global.corp.sap" style="font-size:12px;padding:5px 8px;border:1px solid #d1d5db;border-radius:4px;font-family:inherit;">
+        <label style="font-size:11px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.05em;">Subject</label>
+        <input id="kpiEmailSubject" type="text" style="font-size:12px;padding:5px 8px;border:1px solid #d1d5db;border-radius:4px;font-family:inherit;">
+      </div>
+      <!-- Preview / edit -->
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:11px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.05em;">Email Body</span>
+          <span style="font-size:10px;color:#9ca3af;">Click inside to edit</span>
+        </div>
+        <div id="kpiEmailBody" contenteditable="true" style="border:1px solid #d1d5db;border-radius:6px;padding:14px 16px;min-height:300px;font-family:Arial,sans-serif;font-size:13px;line-height:1.6;color:#111;background:#fafafa;overflow-y:auto;max-height:50vh;outline:none;"></div>
+      </div>
+    </div>
+    <!-- Footer -->
+    <div style="padding:12px 20px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;gap:10px;flex-shrink:0;">
+      <div id="kpiSendStatus" style="flex:1;font-size:12px;color:#374151;align-self:center;"></div>
+      <button onclick="kpiReportClose()" style="padding:8px 18px;font-size:13px;border:1px solid #d1d5db;border-radius:6px;background:#fff;color:#374151;cursor:pointer;font-family:inherit;font-weight:600;">Cancel</button>
+      <button id="kpiSendBtn" onclick="kpiReportSend()" style="padding:8px 18px;font-size:13px;border:none;border-radius:6px;background:#7c3aed;color:#fff;cursor:pointer;font-family:inherit;font-weight:700;display:flex;align-items:center;gap:6px;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="2" stroke="#fff" stroke-width="2"/><path d="M2 7l10 7 10-7" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+        Send Email
+      </button>
+    </div>
+  </div>
+</div>
+<!-- /KPI Score Report Modal -->
 
 <!-- RA Confirm Assignment Modal -->
 <div id="raConfirmModal" class="ra-modal-overlay" style="display:none;" onclick="if(event.target===this){document.getElementById('raConfirmNo').click();}">

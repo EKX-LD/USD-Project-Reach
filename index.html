@@ -28254,17 +28254,30 @@ function kpiReportGetStats(enrollMonth, enrollYear) {
     return String(f['MMMEnrollment']  || '').trim() === enrollMonth &&
            String(f['EnrollmentYYYY'] || '').trim() === ey;
   });
-  var kpiYes  = items.filter(function(i){ return String((i.fields||{})['field_24']||'').trim().toLowerCase() === 'yes'; });
-  var withUtil = kpiYes.filter(function(i){ return String((i.fields||{})['field_25']||'').trim().toLowerCase() === 'yes'; });
-  var noUtil   = kpiYes.filter(function(i){ return String((i.fields||{})['field_25']||'').trim().toLowerCase() !== 'yes'; });
-  /* Success rate = util growth / no-util-enrolled (clients who needed to gain) */
-  var totalActive = items.length;
-  var kpiTotal    = kpiYes.length;
-  var withUtilN   = withUtil.length;
-  var noUtilN     = noUtil.length;
-  /* Among no-util enrolled at start, how many gained util? */
-  /* Approximate: withUtil among KPI=Yes are the ones who gained util */
-  var successRate = noUtilN > 0 ? Math.round(withUtilN / (withUtilN + noUtilN) * 1000) / 10 : 0;
+
+  /* Mirror the exact formula used by smBuildDashboard */
+  var kpiTotal = 0, withUtilN = 0, noCaseKbCount = 0, deactivatedCount = 0;
+  items.forEach(function(item){
+    var f   = item.fields || {};
+    var kpi  = (f['field_24'] || '').trim().toLowerCase();
+    var note = (f['field_37'] || '').trim();
+    var util = (f['field_25'] || '').trim();
+    if (kpi === 'no' || kpi === 'excluded') {
+      /* Deactivated = KPI=No with "No longer USD Client" note */
+      if (kpi === 'no' && note === 'No longer USD Client' && (f['MMMEnrollment']||'').trim())
+        deactivatedCount++;
+      else
+        noCaseKbCount++;
+      return;
+    }
+    if (kpi === 'yes') { kpiTotal++; if (util === 'Yes') withUtilN++; }
+  });
+
+  /* noUtilBase = everyone who enrolled needing util (same denominator as dashboard) */
+  var noUtilBase  = kpiTotal + deactivatedCount;
+  var noUtilN     = kpiTotal - withUtilN;   /* current KPI=Yes clients still without util */
+  var successRate = noUtilBase > 0 ? Math.round(withUtilN / noUtilBase * 1000) / 10 : 0;
+
   /* KPI Score month = enrollment month + 2 */
   var MONTHS = ['January','February','March','April','May','June',
                 'July','August','September','October','November','December'];
@@ -28275,10 +28288,11 @@ function kpiReportGetStats(enrollMonth, enrollYear) {
   return {
     enrollMonth: enrollMonth, enrollYear: ey,
     kpiMonth: kpiMonth,
-    totalActive: totalActive,
+    totalActive: items.length,
     kpiTotal: kpiTotal,
     withUtil: withUtilN,
     noUtil: noUtilN,
+    noUtilBase: noUtilBase,
     successRate: successRate
   };
 }
